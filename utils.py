@@ -14,7 +14,8 @@ def get_chatgpt_response(messages, model="gpt-3.5-turbo"):
     print("model: ", model)
     response = openai.ChatCompletion.create(
     model=model,
-    messages=messages
+    messages=messages,
+    stream=False,
     )
     return  response['choices'][0]['message']['content']
 

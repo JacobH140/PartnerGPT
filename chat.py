@@ -10,12 +10,6 @@ from collections import defaultdict
 os.environ['OPENAI_API_KEY'] = api_key 
 load_dotenv()
 
-if 'vocab_words' not in st.session_state:
-    st.session_state['vocab_words'] = ["滑冰", "大象", "默契", "矛盾"]
-
-
-#def form_callback():
-
 
 def get_next_vocab_word():
     deck_name = "Chinese::Vocabulary::Vocabulary"
@@ -23,119 +17,140 @@ def get_next_vocab_word():
     due_note_info, due_card_info = anki_utils.get_note_and_card_info(due_card_ids)
     first_key, first_value = next(iter(due_note_info.items()))
     voc_word = due_note_info[first_key]['fields']['Vocab']['value']
-    return st.session_state['vocab_words'].pop() # temp
+
+    #vocab_words_testing_temp = ["滑冰", "大象", "默契", "矛盾"] # temp, just for testing purposes currently
+    return state.vocab_words_testing_temp.pop() # temp
+
+def get_next_aux_words():
+    return ["熊猫", "首都机场", "常常"] # temporary for testing
+
+
+class SessionState:
+    def __init__(self):
+        self.vocab_words_testing_temp = ["滑冰", "大象", "默契", "矛盾"]
+        self.generated = []
+        self.past = []
+        self.begin_button_has_been_clicked = False
+        self.current_ratings = defaultdict(lambda: None)
+        self.form_submitted = False
+        self.current_vocab_word = None
+        self.current_aux_words = None
+        self.messages = []
+        self.model = None
+        #self.main_words = []
+
+    def generate_bot_response(self, query):
+        with st.spinner("generating..."):
+            messages = self.messages
+            messages = update_chat(messages, "user", query)
+            response = get_chatgpt_response(messages, self.model)
+            messages = update_chat(messages, "assistant", response)
+            state.past.append(query)
+            state.generated.append(response)
+        return messages
+
+def initialize_app(heading, subheading):
+    st.title(heading)
+    st.subheader(subheading)
+    
+    model = st.selectbox("Select a model", ("gpt-3.5-turbo", "gpt-4", "ada"))
+    if 'state' not in st.session_state:
+        st.session_state.state = SessionState()
+        st.session_state.state.model = model
+    return st.session_state.state
+
+def update_UI_messages(state_object):
+    for i in range(len(state_object.generated)-1, -1, -1):
+        message(state_object.past[i], is_user=True, key=str(i) + '_user')
+        message(state_object.generated[i], key=str(i))
+
+def expander_messages_widget(state_object):
+    with st.expander("Show Messages"):
+        try:
+            st.write(state_object.messages)
+        except NameError:
+            pass
+
+
+
+def rating_form(state_object):
+    # Create a form
+    def on_click():
+        state_object.form_submitted=True
+        for word in [state_object.current_vocab_word] + state_object.current_aux_words:
+            state.current_ratings[word] = r
+
+    with st.form('Rating Form'):
+        ratings = []
+        #for word in [state_object.main_words[-2]] + state_object.current_aux_words:
+        for word in [state_object.current_vocab_word] + state_object.current_aux_words:
+            r = st.radio(word, ("Again", "Hard", "Good", "Easy", "N/A"), horizontal=True)
+            print("r: ", r)
+            state.current_ratings[word] = r
+            ratings.append(r)
+            #ratings.append(st.radio(word, ("Again", "Hard", "Good", "Easy"), horizontal=True)
+        return st.form_submit_button('Submit', on_click=on_click), state.current_ratings
+
 
 if __name__ == '__main__':
-
-
-    st.title("heading")
-    st.subheader("subheading")
-    
-
-    model = st.selectbox("Select a model", ("gpt-3.5-turbo", "gpt-4"))
-
-    if 'generated' not in st.session_state:
-        st.session_state['generated'] = []
-   
-    if 'past' not in st.session_state:
-        st.session_state['past'] = []
-
-    if 'proceed_button_clicked' not in st.session_state:
-        st.session_state['proceed_button_clicked'] = False
-    
-    if 'current_ratings' not in st.session_state:
-        st.session_state['current_ratings'] = defaultdict(lambda: None)
-
-    if 'form_submitted' not in st.session_state:
-        st.session_state['form_submitted'] = False
-
-    if 'main_words' not in st.session_state:
-        st.session_state['main_words'] = []
-
-    query = st.text_input("You: ", key="input", disabled=False)
-
-    if st.button("Begin" if not st.session_state['proceed_button_clicked'] else "Next", key="proceed_button"):
+    state = initialize_app("heading", "subheading")
+    query = st.text_input("You: ", key="input")
+    ratings = []
+    if st.button("Begin" if not state.begin_button_has_been_clicked else "Next"):
         print("next")
+        if state.begin_button_has_been_clicked:
+            state.form_submitted, ratings = rating_form(state)
+            print("form submitted: ", state.form_submitted)
+            #for index, word in enumerate(state.current_ratings.keys()):
+            #    state.current_ratings[word] = ratings[index]
+            print("other ratings: ", state.current_ratings)
         #if 'messages' not in st.session_state:
-        vocab_word = get_next_vocab_word()
-        aux_words= ["熊猫", "首都机场", "常常"]
-        st.session_state['main_words'].append(vocab_word)
-        st.session_state['messages'] = get_initial_message(vocab_word=vocab_word, aux_words=aux_words)
+        state.current_vocab_word = get_next_vocab_word()
+        state.current_aux_words = get_next_aux_words()
+        #state.main_words.append(state.current_vocab_word)
+        state.messages = get_initial_message(vocab_word=state.current_vocab_word, aux_words=state.current_aux_words)
 
-        if not st.session_state['proceed_button_clicked']:
+        if not state.begin_button_has_been_clicked:
             query = "Let's begin!"
         else:
             query = "Next!"
         print("If region query: ", query)
     
 
-        if st.session_state['proceed_button_clicked']:
-            # Create a form
-            with st.form('Rating Form'):
-                ratings = []
-                for word in [st.session_state['main_words'][-2]] + aux_words:
-                    st.session_state.current_ratings[word] = st.radio(word, ("Again", "Hard", "Good", "Easy"), horizontal=True)
-                    #ratings.append(st.radio(word, ("Again", "Hard", "Good", "Easy"), horizontal=True))
-
-                # Add a submit button to the form
-                submitted = st.form_submit_button('Submit')
-
-                st.session_state['form_submitted'] = submitted
 
             
-        st.session_state['proceed_button_clicked'] = True
+        state.begin_button_has_been_clicked = True
         if query:
-            with st.spinner("generating..."):
-                messages = st.session_state['messages']
-                messages = update_chat(messages, "user", query)
-                response = get_chatgpt_response(messages, model)
-                messages = update_chat(messages, "assistant", response)
-                st.session_state.past.append(query)
-                st.session_state.generated.append(response)
-        if st.session_state['generated']:
-        
-            for i in range(len(st.session_state['generated'])-1, -1, -1):
-                message(st.session_state['past'][i], is_user=True, key=str(i) + '_user')
-                message(st.session_state["generated"][i], key=str(i))
+            state.messages = state.generate_bot_response(query)
 
-            with st.expander("Show Messages"):
-                try:
-                    st.write(messages)
-                except NameError:
-                    pass
+        if state.generated:
+            update_UI_messages(state)
+            expander_messages_widget(state)
             
 
-    elif st.session_state['form_submitted']:
+    elif state.form_submitted:
         print("form submitted")
         query = "" # no query here
-        st.write("ratings: ", st.session_state.current_ratings)
-        print("ratings: ", st.session_state.current_ratings)
-        st.session_state['form_submitted'] = False
+        #st.write("ratings: ", state.current_ratings)
+        #for i, word in enumerate([state.current_vocab_word] + state.current_aux_words):
+            #print(i)
+            #state.current_ratings[word] = ratings[i]
+        print("ratings: ", state.current_ratings)
+        state.form_submitted = False
+
+        if state.generated:
+            update_UI_messages(state)
+            expander_messages_widget(state)
 
     else:
-        print("ratings: ", st.session_state.current_ratings)
+        print("ratings: ", state.current_ratings)
         print("Else region query: ", query)
         if query:
-            with st.spinner("generating..."):
-                messages = st.session_state['messages']
-                messages = update_chat(messages, "user", query)
-                response = get_chatgpt_response(messages, model)
-                messages = update_chat(messages, "assistant", response)
-                st.session_state.past.append(query)
-                st.session_state.generated.append(response)
+            state.generate_bot_response(query)
 
-        if st.session_state['generated']:
-
-            for i in range(len(st.session_state['generated'])-1, -1, -1):
-                message(st.session_state['past'][i], is_user=True, key=str(i) + '_user')
-                message(st.session_state["generated"][i], key=str(i))
-
-            with st.expander("Show Messages"):
-                try:
-                    st.write(messages)
-                except NameError:
-                    pass
-
+        if state.generated:
+            update_UI_messages(state)
+            expander_messages_widget(state)
     
             
 
