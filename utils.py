@@ -19,6 +19,21 @@ def get_chatgpt_response(messages, model="gpt-3.5-turbo"):
     )
     return  response['choices'][0]['message']['content']
 
+def get_chatgpt_response_stream_chunk(messages, model="gpt-3.5-turbo"):
+    response = openai.ChatCompletion.create(
+    model=model,
+    messages=messages,
+    stream=True,
+    )
+    # create variables to collect the stream of chunks
+    collected_chunks = []
+    collected_messages = []
+    # iterate through the stream of events
+    for chunk in response:
+        collected_chunks.append(chunk)  # save the event response
+        chunk_message = chunk['choices'][0]['delta']  # extract the message
+        collected_messages.append(chunk_message)  # save the message
+
 def update_chat(messages, role, content):
     messages.append({"role": role, "content": content})
     return messages

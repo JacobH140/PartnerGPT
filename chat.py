@@ -1,6 +1,6 @@
 import streamlit as st
 from streamlit_chat import message
-from utils import get_initial_message, get_chatgpt_response, update_chat
+from utils import get_initial_message, get_chatgpt_response, get_chatgpt_response_stream_chunk, update_chat
 import os
 from dotenv import load_dotenv
 import openai
@@ -24,7 +24,6 @@ def get_next_vocab_word():
 def get_next_aux_words():
     return ["熊猫", "首都机场", "常常"] # temporary for testing
 
-
 class SessionState:
     def __init__(self):
         self.vocab_words_testing_temp = ["滑冰", "大象", "默契", "矛盾"]
@@ -38,31 +37,60 @@ class SessionState:
         self.messages = []
         self.model = None
         #self.main_words = []
+    
+    def stream_chat_completion(self, messages, temperature=0):
+        return openai.ChatCompletion.create(
+            model=self.model,
+            messages=messages,
+            temperature=temperature,
+            stream=True  # again, we set stream=True
+        )
 
-    def generate_bot_response(self, query):
+    def generate_bot_response(self, query, stream=False):
         with st.spinner("generating..."):
             messages = self.messages
             messages = update_chat(messages, "user", query)
-            response = get_chatgpt_response(messages, self.model)
+            if not stream:
+                response = get_chatgpt_response(messages, self.model)
+                
+                
+            else:
+                with st.empty():
+                # create variables to collect the stream of chunks
+                   collected_chunks = []
+                   collected_messages = []
+                   # iterate through the stream of events
+                   for chunk in self.stream_chat_completion(messages):
+                       collected_chunks.append(chunk)  # save the event response
+                       chunk_message = chunk['choices'][0]['delta']  # extract the message
+                       collected_messages.append(chunk_message)  # save the message
+                       st.success(''.join([m.get('content', '') for m in collected_messages]))
+                response = ''.join([m.get('content', '') for m in collected_messages])
+                
             messages = update_chat(messages, "assistant", response)
-            state.past.append(query)
             state.generated.append(response)
+            state.past.append(query)
+            #state.generated.append(response)
         return messages
+    
+    
 
 def initialize_app(heading, subheading):
     st.title(heading)
     st.subheader(subheading)
     
-    model = st.selectbox("Select a model", ("gpt-3.5-turbo", "gpt-4", "ada"))
+    model = st.selectbox("Select a model", ("gpt-3.5-turbo", "gpt-4"))
     if 'state' not in st.session_state:
         st.session_state.state = SessionState()
         st.session_state.state.model = model
     return st.session_state.state
 
 def update_UI_messages(state_object):
-    for i in range(len(state_object.generated)-1, -1, -1):
-        message(state_object.past[i], is_user=True, key=str(i) + '_user')
-        message(state_object.generated[i], key=str(i))
+    for i in range(len(state_object.generated)-1, -1, -1): # reverse iterate through list
+        #message(state_object.past[i], is_user=True, key=str(i) + '_user')
+        st.info(state_object.past[i])
+        #message(state_object.generated[i], key=str(i))
+        st.success(state_object.generated[i])
 
 def expander_messages_widget(state_object):
     with st.expander("Show Messages"):
@@ -79,6 +107,7 @@ def rating_form(state_object):
         state_object.form_submitted=True
         for word in [state_object.current_vocab_word] + state_object.current_aux_words:
             state.current_ratings[word] = r
+            st.balloons()
 
     with st.form('Rating Form'):
         ratings = []
@@ -94,7 +123,7 @@ def rating_form(state_object):
 
 if __name__ == '__main__':
     state = initialize_app("heading", "subheading")
-    query = st.text_input("You: ", key="input")
+    query = st.text_input("You: ", placeholder='placeholder', key="input")
     ratings = []
     if st.button("Begin" if not state.begin_button_has_been_clicked else "Next"):
         print("next")
@@ -121,7 +150,7 @@ if __name__ == '__main__':
             
         state.begin_button_has_been_clicked = True
         if query:
-            state.messages = state.generate_bot_response(query)
+            state.messages = state.generate_bot_response(query, stream=True)
 
         if state.generated:
             update_UI_messages(state)
@@ -146,7 +175,7 @@ if __name__ == '__main__':
         print("ratings: ", state.current_ratings)
         print("Else region query: ", query)
         if query:
-            state.generate_bot_response(query)
+            state.generate_bot_response(query, stream=True)
 
         if state.generated:
             update_UI_messages(state)
