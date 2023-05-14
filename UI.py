@@ -114,12 +114,12 @@ def rating_form(nonUI_state):
     with st.form('Rating Form', clear_on_submit=False):
         ratings = defaultdict(lambda: None)
         #for word in [state_object.main_words[-2]] + state_object.current_aux_words:
-        #for word in ["word1", "word2", "word3", "word4"]:
-        #    r = st.radio(word, ("Again", "Hard", "Good", "Easy", "N/A"), horizontal=True)
-        #    r =  st.text_input(word) # also yields all blanks
-        #    ratings[word] = r
-        val = {randrange(100):st.slider("slider")}
-        return st.form_submit_button('Submit', on_click=on_submit), val
+        for word in ["word1", "word2", "word3", "word4"]:
+            r = st.radio(word, ("Again", "Hard", "Good", "Easy", "N/A"), horizontal=True)
+            #r =  st.text_input(word) # also yields all blanks
+            ratings[word] = r
+        #val = {randrange(100):st.slider("slider")}
+        return st.form_submit_button('Submit', on_click=on_submit), ratings
 
 def ratings_widget(state_object):
     with st.sidebar.expander("Show Review Ratings"):
