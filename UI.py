@@ -30,6 +30,9 @@ class SessionNonUIState:
 
         self.submitted_ratings = defaultdict(lambda: None)
         self.administer_rating_form = False
+        self.form_submit_button_clicked = False
+
+        self.on_automatic_rerun = False
 
     def generate_bot_response_placeholder(self, query):
         with st.spinner("generating..."):
@@ -52,6 +55,10 @@ class SessionNonUIState:
     def reset_submitted_ratings(self):
         self.submitted_ratings = defaultdict(lambda: None)
         assert(len(self.submitted_ratings) == 0)
+
+    def rerun(self):
+        self.on_automatic_rerun = True
+        st.experimental_rerun()
 
 def get_initial_message_placeholder():
     messages=[
@@ -100,14 +107,17 @@ def expander_messages_widget(state_object):
 def rating_form(nonUI_state):
     def on_submit():
         nonUI_state.administer_rating_form = False
+        nonUI_state.form_submit_button_clicked = True
         st.balloons()
 
     with st.form('Rating Form', clear_on_submit=False):
         #for word in [state_object.main_words[-2]] + state_object.current_aux_words:
-        for word in ["word1", "word2", "word3", "word4"]:
-            r = st.radio(word, ("Again", "Hard", "Good", "Easy", "N/A"), horizontal=True)
-            nonUI_state.submitted_ratings[word] = r
-        return st.form_submit_button('Submit', on_click=on_submit)
+        #for word in ["word1", "word2", "word3", "word4"]:
+            #r = st.radio(word, ("Again", "Hard", "Good", "Easy", "N/A"), horizontal=True)
+            #r =  st.text_input(word) # also yields all blanks
+            #nonUI_state.submitted_ratings[word] = r
+        val = st.slider("slider")
+        return st.form_submit_button('Submit', on_click=on_submit), val
 
 def chat(nonUI_state):
 
@@ -121,7 +131,7 @@ def chat(nonUI_state):
             nonUI_state.administer_rating_form = True
             clear_text()
         
-        if 'query' in st.session_state and not nonUI_state.administer_rating_form:
+        if 'query' in st.session_state and not nonUI_state.administer_rating_form: # first part ensures this doesn't run when 'begin' is pressed, second part ensures 'next' behavior doesn't run while the rating form is being administered
             st.session_state.queried = '**next !**'
             nonUI_state.messages = nonUI_state.generate_bot_response_placeholder(query=st.session_state.queried)
             clear_text()
@@ -131,8 +141,7 @@ def chat(nonUI_state):
         
         nonUI_state.chatting_has_begun = True
         
-
-
+        
 
     if "queried" not in st.session_state:
         st.session_state["queried"] = ""
@@ -146,17 +155,39 @@ def chat(nonUI_state):
         nonUI_state.messages = nonUI_state.generate_bot_response_placeholder(st.session_state.queried)
 
     if nonUI_state.generated:
-        if nonUI_state.submitted_ratings:
-            nonUI_state.review_notif("**Submitted ratings for <num_items> items: <items>**")
-            print(nonUI_state.submitted_ratings)
-            nonUI_state.reset_submitted_ratings()
+        #if nonUI_state.submitted_ratings and not nonUI_state.on_automatic_rerun:
+        #    nonUI_state.review_notif("**Submitted ratings for <num_items> items: <items>**")
+        #    print(nonUI_state.submitted_ratings)
+            #if nonUI_state.on_automatic_rerun:
+                #nonUI_state.reset_submitted_ratings()
         update_UI_messages(nonUI_state)
         
+    submitted_ratings = None
+    #print("administer_rating_form:", nonUI_state.administer_rating_form, "", "form_submit_button_clicked:", nonUI_state.form_submit_button_clicked, "", "on_automatic_rerun:", nonUI_state.on_automatic_rerun)
+    if nonUI_state.administer_rating_form or nonUI_state.form_submit_button_clicked: #nonUI_state.on_automatic_rerun:
+        submitted_form, submitted_ratings = rating_form(nonUI_state) # only want to call rating form when administer_rating_form is True, but only care about the results when it's false...?
+        print(submitted_form, submitted_ratings)
+        if nonUI_state.form_submit_button_clicked and not nonUI_state.on_automatic_rerun: # note that at all times AT MOST one of form_submit_button_clicked, administer_rating_form, and on_automatic_rerun can be True
+            print("rerun")
+            nonUI_state.form_submit_button_clicked = False
+            nonUI_state.rerun()
+        #nonUI_state.administered_rating_form = True
 
-
-    if nonUI_state.administer_rating_form:
-        rating_form(nonUI_state)
+            
+    if nonUI_state.on_automatic_rerun: # this is when the submitted ratings are the real ones
+        print("val(s):", submitted_ratings)
+        nonUI_state.submitted_ratings = submitted_ratings
+        #nonUI_state.administered_rating_form = False
+        #nonUI_state.reset_submitted_ratings()
         #nonUI_state.reviewed.append("**Submitted reviews for <num_items> items: <items> !**")
+        notification = "**Submitted ratings for <num_items> items: <items>**"
+        nonUI_state.review_notif(notification)
+        st.warning(notification) # not ideal, but this requires least amount of state management
+        print(nonUI_state.submitted_ratings)
+        #if nonUI_state.on_automatic_rerun:
+            #nonUI_state.reset_submitted_ratings()
+    
+
 
     
     if nonUI_state.chatting_has_begun:
@@ -177,6 +208,27 @@ def chat(nonUI_state):
 if __name__ == '__main__':
     nonUI_state = initialize_app("header", "subheader")
     chat(nonUI_state)
+    if nonUI_state.on_automatic_rerun:
+        nonUI_state.on_automatic_rerun = False
+    #def form_func():
+    #    def on_submit(val):
+    #        nonUI_state.administer_rating_form = False
+    #        nonUI_state.submitted_ratings = {"val":val}
+    #        st.balloons()
+    #    with st.form('Rating Form', clear_on_submit=False):
+    #        #for word in [state_object.main_words[-2]] + state_object.current_aux_words:
+    #        #for word in ["word1", "word2", "word3", "word4"]:
+    #            #r = st.radio(word, ("Again", "Hard", "Good", "Easy", "N/A"), horizontal=True)
+    #            #r =  st.text_input(word) # also yields all blanks
+    #            #nonUI_state.submitted_ratings[word] = r
+    #        val = st.slider("slider")
+    #        return st.form_submit_button('Submit', on_click=on_submit, args=(val,)), val
+    #        
+    #if nonUI_state.administer_rating_form: 
+    #    nonUI_state.submitted_form, nonUI_state.submitted_ratings = form_func()
+    #if nonUI_state.submitted_form:
+    #    print("val(s):", nonUI_state.submitted_ratings)
+    #    nonUI_state.submitted_form = False
 
 
 #https://stackoverflow.com/questions/52718897/minimal-shortest-html-for-clickable-show-hide-text-or-spoiler
