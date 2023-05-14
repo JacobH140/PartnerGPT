@@ -88,7 +88,7 @@ tr.text_area("**Your input**", value=st.session_state['input']['text'])
 
 if result:
     if "GET_TEXT" in result:
-        if result.get("GET_TEXT")["t"] != '' and result.get("GET_TEXT")["s"] != st.session_state['input']['session'] :
+        if result.get("GET_TEXT")["t"] != '' and result.get("GET_TEXT")["s"] != st.session_state['input']['session'] : # "s" for "session", "t" for "text"
             st.session_state['input']['text'] = result.get("GET_TEXT")["t"]
             tr.text_area("**Your input**", value=st.session_state['input']['text'])
             st.session_state['input']['session'] = result.get("GET_TEXT")["s"]

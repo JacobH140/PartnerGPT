@@ -7,6 +7,14 @@ import openai
 from apikey import api_key
 import anki_utils
 from collections import defaultdict
+from bokeh.models.widgets import Button
+from bokeh.models import CustomJS
+
+from streamlit_bokeh_events import streamlit_bokeh_events
+
+from gtts import gTTS
+from io import BytesIO
+import openai
 os.environ['OPENAI_API_KEY'] = api_key 
 load_dotenv()
 
@@ -99,12 +107,99 @@ def expander_messages_widget(state_object):
         except NameError:
             pass
 
+def user_stt():
+    placeholder = st.container()
+
+    stt_button = Button(label='🎙️', button_type='success')
+
+
+    stt_button.js_on_event("button_click", CustomJS(code="""
+        var value = "";
+        var rand = 0;
+        var recognition = new webkitSpeechRecognition();
+        recognition.continuous = false;
+        recognition.interimResults = true;
+        recognition.lang = 'zh-CN';
+
+        document.dispatchEvent(new CustomEvent("GET_ONREC", {detail: 'start'}));
+
+        recognition.onspeechstart = function () {
+            document.dispatchEvent(new CustomEvent("GET_ONREC", {detail: 'running'}));
+        }
+        recognition.onsoundend = function () {
+            document.dispatchEvent(new CustomEvent("GET_ONREC", {detail: 'stop'}));
+        }
+        recognition.onresult = function (e) {
+            var value2 = "";
+            for (var i = e.resultIndex; i < e.results.length; ++i) {
+                if (e.results[i].isFinal) {
+                    value += e.results[i][0].transcript;
+                    rand = Math.random();
+
+                } else {
+                    value2 += e.results[i][0].transcript;
+                }
+            }
+            document.dispatchEvent(new CustomEvent("GET_TEXT", {detail: {t:value, s:rand}}));
+            document.dispatchEvent(new CustomEvent("GET_INTRM", {detail: value2}));
+
+        }
+        recognition.onerror = function(e) {
+            document.dispatchEvent(new CustomEvent("GET_ONREC", {detail: 'stop'}));
+        }
+        recognition.start();
+        """))
+
+    result = streamlit_bokeh_events(
+        bokeh_plot = stt_button,
+        events="GET_TEXT,GET_ONREC,GET_INTRM",
+        key="listen",
+        refresh_on_update=False,
+        override_height=75,
+        debounce_time=0)
+
+    tr = st.empty()
+
+    if 'input' not in st.session_state:
+        st.session_state['input'] = dict(text='', session=0)
+        print("init session state input", st.session_state['input'])
+        print(type(st.session_state['input']))
+
+    print("session state input: ", st.session_state.input)
+    tr.text_area("**Your input**", value=st.session_state['input']['text'])
+    
+
+    if result:
+        if "GET_TEXT" in result:
+            if result.get("GET_TEXT")["t"] != '' and result.get("GET_TEXT")["s"] != st.session_state['input']['session'] :
+                st.session_state['input']['text'] = result.get("GET_TEXT")["t"]
+                tr.text_area("**Your input**", value=st.session_state['input']['text'])
+                st.session_state['input']['session'] = result.get("GET_TEXT")["s"]
+
+        if "GET_INTRM" in result:
+            if result.get("GET_INTRM") != '':
+                tr.text_area("**Your input**", value=st.session_state['input']['text']+' '+result.get("GET_INTRM"))
+
+        if "GET_ONREC" in result:
+            if result.get("GET_ONREC") == 'start':
+                placeholder.image("recon.gif")
+                st.session_state['input']['text'] = ''
+            elif result.get("GET_ONREC") == 'running':
+                placeholder.image("recon.gif")
+            elif result.get("GET_ONREC") == 'stop':
+                placeholder.image("recon.jpg")
+                if st.session_state['input']['text'] != '':
+                    input = st.session_state['input']['text']
+
+                    return input
+    return False
+
 
 
 def rating_form(state_object):
     # Create a form
     def on_click():
-        state_object.form_submitted=True
+        #state_object.form_submitted=True
         for word in [state_object.current_vocab_word] + state_object.current_aux_words:
             state.current_ratings[word] = r
             st.balloons()
@@ -123,63 +218,69 @@ def rating_form(state_object):
 
 if __name__ == '__main__':
     state = initialize_app("heading", "subheading")
-    query = st.text_input("You: ", placeholder='placeholder', key="input")
-    ratings = []
-    if st.button("Begin" if not state.begin_button_has_been_clicked else "Next"):
-        print("next")
-        if state.begin_button_has_been_clicked:
-            state.form_submitted, ratings = rating_form(state)
-            print("form submitted: ", state.form_submitted)
-            #for index, word in enumerate(state.current_ratings.keys()):
-            #    state.current_ratings[word] = ratings[index]
-            print("other ratings: ", state.current_ratings)
-        #if 'messages' not in st.session_state:
-        state.current_vocab_word = get_next_vocab_word()
-        state.current_aux_words = get_next_aux_words()
-        #state.main_words.append(state.current_vocab_word)
-        state.messages = get_initial_message(vocab_word=state.current_vocab_word, aux_words=state.current_aux_words)
+    with st.form('Query Form', clear_on_submit=True):
+        st.text_input("You: ", placeholder='speak or type', key="query", label_visibility="collapsed")
+        ratings = []
+        #user_stt()
+        if st.button("Begin" if not state.begin_button_has_been_clicked else "Next"):
+            print("next")
+            if state.begin_button_has_been_clicked:
+                state.form_submitted, ratings = rating_form(state)
+                print("form submitted: ", state.form_submitted)
+                #for index, word in enumerate(state.current_ratings.keys()):
+                #    state.current_ratings[word] = ratings[index]
+                print("other ratings: ", state.current_ratings)
+            #if 'messages' not in st.session_state:
+            state.current_vocab_word = get_next_vocab_word()
+            state.current_aux_words = get_next_aux_words()
+            #state.main_words.append(state.current_vocab_word)
+            if state.form_submitted:
+                state.messages = get_initial_message(vocab_word=state.current_vocab_word, aux_words=state.current_aux_words)
+                state.form_submitted = False
 
-        if not state.begin_button_has_been_clicked:
-            query = "Let's begin!"
+            #if not state.begin_button_has_been_clicked:
+            #    st.session_state.query = "Let's begin!"
+            #else:
+            #    st.session_state.query = "Next!"
+            #print("If region query: ", st.session_state.query)
+
+
+
+
+            state.begin_button_has_been_clicked = True
+            if st.session_state.query:
+                state.messages = state.generate_bot_response(st.session_state.query, stream=True)
+                #st.session_state.query = ""
+
+            if state.generated:
+                update_UI_messages(state)
+                expander_messages_widget(state)
+
+
+        elif state.form_submitted:
+            print("form submitted")
+            #query = "" # no query here
+            #st.write("ratings: ", state.current_ratings)
+            #for i, word in enumerate([state.current_vocab_word] + state.current_aux_words):
+                #print(i)
+                #state.current_ratings[word] = ratings[i]
+            print("ratings: ", state.current_ratings)
+            state.form_submitted = False
+
+            if state.generated:
+                update_UI_messages(state)
+                expander_messages_widget(state)
+
         else:
-            query = "Next!"
-        print("If region query: ", query)
-    
+            print("ratings: ", state.current_ratings)
+            print("Else region query: ", st.session_state.query)
+            if st.session_state.query:
+                state.generate_bot_response(st.session_state.query, stream=True)
+                #st.session_state.query = ""
 
-
-            
-        state.begin_button_has_been_clicked = True
-        if query:
-            state.messages = state.generate_bot_response(query, stream=True)
-
-        if state.generated:
-            update_UI_messages(state)
-            expander_messages_widget(state)
-            
-
-    elif state.form_submitted:
-        print("form submitted")
-        query = "" # no query here
-        #st.write("ratings: ", state.current_ratings)
-        #for i, word in enumerate([state.current_vocab_word] + state.current_aux_words):
-            #print(i)
-            #state.current_ratings[word] = ratings[i]
-        print("ratings: ", state.current_ratings)
-        state.form_submitted = False
-
-        if state.generated:
-            update_UI_messages(state)
-            expander_messages_widget(state)
-
-    else:
-        print("ratings: ", state.current_ratings)
-        print("Else region query: ", query)
-        if query:
-            state.generate_bot_response(query, stream=True)
-
-        if state.generated:
-            update_UI_messages(state)
-            expander_messages_widget(state)
+            if state.generated:
+                update_UI_messages(state)
+                expander_messages_widget(state)
     
             
 
