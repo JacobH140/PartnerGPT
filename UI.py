@@ -10,6 +10,7 @@ from collections import defaultdict
 from bokeh.models.widgets import Button
 from bokeh.models import CustomJS
 from random import randrange
+import stt
 
 from streamlit_bokeh_events import streamlit_bokeh_events
 
@@ -34,6 +35,17 @@ class SessionNonUIState:
         self.administer_rating_form = False
         self.form_submit_button_clicked = False
         self.on_automatic_rerun = False # this is specific to the form thing... don't try to use it for anything else
+
+    def user_text_input_widget(self, session_state_object, value=None):
+
+        
+        if 'query' not in session_state_object:
+            st.text_input("You: ", placeholder='speak or type', key="query", label_visibility="collapsed", on_change=clear_text, disabled=self.administer_rating_form)
+        else:
+            st.text_input("You: ", value=session_state_object['query'], placeholder='speak or type', key="query", label_visibility="collapsed", on_change=clear_text, disabled=self.administer_rating_form)
+
+
+
 
     def generate_bot_response_placeholder(self, query):
         with st.spinner("generating..."):
@@ -126,11 +138,13 @@ def ratings_widget(state_object):
         st.write(state_object.submitted_ratings)
 
 
+def clear_text(): # should this have st.session_state as an argument?
+    st.session_state["queried"] = st.session_state["query"]
+    st.session_state["query"] = ""
+
 def chat(nonUI_state):
 
-    def clear_text():
-        st.session_state["queried"] = st.session_state["query"]
-        st.session_state["query"] = ""
+
 
     def on_proceed_button_click():
         nonUI_state.messages = get_initial_message_placeholder()
@@ -167,17 +181,17 @@ def chat(nonUI_state):
         #    print(nonUI_state.submitted_ratings)
             #if nonUI_state.on_automatic_rerun:
                 #nonUI_state.reset_submitted_ratings()
-        print("rerun status", nonUI_state.on_automatic_rerun)
-        print("query in session state? ", 'query' in st.session_state)
+        #print("rerun status", nonUI_state.on_automatic_rerun)
+        #print("query in session state? ", 'query' in st.session_state)
         
         if nonUI_state.on_automatic_rerun: # first part ensures this doesn't run when 'begin' is pressed, second part ensures 'next' behavior doesn't run while the rating form is being administered
             st.session_state.queried = '**next !**'
-            print("queried:", st.session_state.queried)
+            #print("queried:", st.session_state.queried)
             nonUI_state.review_notif(f"**Submitted ratings for <num_items> items: <items>**")
             nonUI_state.messages = nonUI_state.generate_bot_response_placeholder(query=st.session_state.queried)
             
 
-        print(nonUI_state.messages)
+        #print(nonUI_state.messages)
         update_UI_messages(nonUI_state)
 
         #if nonUI_state.form_submit_button_clicked:
@@ -190,23 +204,23 @@ def chat(nonUI_state):
     #print("administer_rating_form:", nonUI_state.administer_rating_form, "", "form_submit_button_clicked:", nonUI_state.form_submit_button_clicked, "", "on_automatic_rerun:", nonUI_state.on_automatic_rerun)
     if nonUI_state.administer_rating_form or nonUI_state.form_submit_button_clicked: #nonUI_state.on_automatic_rerun:
         submitted_form, nonUI_state.submitted_rating = rating_form(nonUI_state) # only want to call rating form when administer_rating_form is True, but only care about the results when it's false...?
-        print(submitted_form, nonUI_state.submitted_rating)
+        #print(submitted_form, nonUI_state.submitted_rating)
         if nonUI_state.form_submit_button_clicked and not nonUI_state.on_automatic_rerun: # note that at all times AT MOST one of form_submit_button_clicked, administer_rating_form, and on_automatic_rerun can be True
-            print("rerun")
+         #   print("rerun")
             nonUI_state.form_submit_button_clicked = False
             nonUI_state.rerun()
         #nonUI_state.administered_rating_form = True
 
             
     if nonUI_state.on_automatic_rerun: # this is when the submitted ratings are the real ones
-        print("val(s):", nonUI_state.submitted_rating)
+        #print("val(s):", nonUI_state.submitted_rating)
         nonUI_state.submitted_ratings = nonUI_state.submitted_ratings | nonUI_state.submitted_rating # dictionary merge
         #nonUI_state.administered_rating_form = False
         #nonUI_state.reset_submitted_ratings()
         #nonUI_state.reviewed.append("**Submitted reviews for <num_items> items: <items> !**")
         #notification = "**Submitted ratings for <num_items> items: <items>**"
         
-        print(nonUI_state.submitted_ratings)
+        #print(nonUI_state.submitted_ratings)
         #if nonUI_state.on_automatic_rerun:
             #nonUI_state.reset_submitted_ratings()
     
@@ -217,9 +231,13 @@ def chat(nonUI_state):
         st.divider()
         mic, user, next_button = st.columns([2,30,4])
         with mic:
-            st.button("🎙️", key="mic_button", disabled=nonUI_state.administer_rating_form)
+            #st.button("🎙️", key="mic_button", disabled=nonUI_state.administer_rating_form)
+            if 'query' not in st.session_state:
+                st.session_state['stt_session'] = 0 # init
+            mic_result = stt.mic_button(st.session_state)
         with user:
-            st.text_input("You: ", placeholder='speak or type', key="query", label_visibility="collapsed", on_change=clear_text, disabled=nonUI_state.administer_rating_form)
+            stt.mic_button_monitor(nonUI_state, mic_result, st.session_state)
+            
         with next_button:
             st.button("Next", key="next_button", on_click=on_proceed_button_click, disabled=nonUI_state.administer_rating_form)
 

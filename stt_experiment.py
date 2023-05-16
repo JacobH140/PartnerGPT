@@ -88,24 +88,33 @@ tr.text_area("**Your input**", value=st.session_state['input']['text'])
 
 if result:
     if "GET_TEXT" in result:
+        print("GET_TEXT in result")
         if result.get("GET_TEXT")["t"] != '' and result.get("GET_TEXT")["s"] != st.session_state['input']['session'] : # "s" for "session", "t" for "text"
+            print(f"""result.get("GET_TEXT")["t"] = {result.get("GET_TEXT")["t"]} and result.get("GET_TEXT")["s"] = {result.get("GET_TEXT")["s"]} != st.session_state['input']['session'] (which is {st.session_state['input']['session']})""")
             st.session_state['input']['text'] = result.get("GET_TEXT")["t"]
             tr.text_area("**Your input**", value=st.session_state['input']['text'])
             st.session_state['input']['session'] = result.get("GET_TEXT")["s"]
 
     if "GET_INTRM" in result:
+        print("GET_INTRM in result")
         if result.get("GET_INTRM") != '':
+            print("""result.get("GET_INTRM") = """ + result.get("GET_INTRM"))
             tr.text_area("**Your input**", value=st.session_state['input']['text']+' '+result.get("GET_INTRM"))
 
     if "GET_ONREC" in result:
+        print("GET_ONREC in result")
         if result.get("GET_ONREC") == 'start':
+            print("result.get('GET_ONREC') == 'start'")
             placeholder.image("recon.gif")
             st.session_state['input']['text'] = ''
         elif result.get("GET_ONREC") == 'running':
+            print("result.get('GET_ONREC') == 'running'")
             placeholder.image("recon.gif")
         elif result.get("GET_ONREC") == 'stop':
+            print("result.get('GET_ONREC') == 'stop'")
             placeholder.image("recon.jpg")
             if st.session_state['input']['text'] != '':
+                print("st.session_state['input']['text'] != ''")
                 input = st.session_state['input']['text']
                 output = generate_response(input)
                 st.write("**ChatBot:**")
