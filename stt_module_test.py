@@ -3,7 +3,7 @@ import UI
 import streamlit as st
 
 if __name__ == "__main__":
-    if 'fish' not in st.session_statea:
+    if 'fish' not in st.session_state:
         st.session_state['fish'] = UI.SessionNonUIState()
     nonUI_state = st.session_state.fish
     mic, user, next_button = st.columns([2,30,4])

@@ -8,9 +8,15 @@ from gtts import gTTS
 from io import BytesIO
 import openai
 
+import UI
+
 from apikey import api_key
 
 openai.api_key = api_key
+
+if 'state' not in st.session_state:
+    st.session_state['state'] = None
+print(st.session_state)
 
 if 'prompts' not in st.session_state:
     st.session_state['prompts'] = [{"role": "system", "content": "You are a helpful assistant. Answer as concisely as possible with a little humor expression."}]

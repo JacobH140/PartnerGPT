@@ -10,14 +10,15 @@ def get_initial_message(vocab_word, aux_words):
         ]
     return messages
 
-def get_chatgpt_response(messages, model="gpt-3.5-turbo"):
+def get_chatgpt_response(messages, temperature, model="gpt-3.5-turbo"):
     print("model: ", model)
     response = openai.ChatCompletion.create(
     model=model,
     messages=messages,
     stream=False,
+    temperature=temperature,
     )
-    return  response['choices'][0]['message']['content']
+    return response['choices'][0]['message']['content']
 
 def get_chatgpt_response_stream_chunk(messages, model="gpt-3.5-turbo"):
     response = openai.ChatCompletion.create(

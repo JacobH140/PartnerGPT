@@ -23,7 +23,7 @@ load_dotenv()
 
 
 
-def mic_button(session_state):
+def mic_button():
     return Button(label='🎙️', button_type='success')
 
 
@@ -39,10 +39,18 @@ def get_result(stt_button):
 
     return result
 
-def mic_button_monitor(nonUI_state, stt_button, session_state):
+def user_text_input_surrogate(tr, session_state_object, value=None):
+        if value is None:
+            tr.text_input("You: ", value=session_state_object['query'], placeholder='speak or type', label_visibility="collapsed")
+        else:
+            tr.text_input("You: ", value=value, placeholder='speak or type', label_visibility="collapsed")
 
+def mic_button_monitor_surrogate(tr, stt_button, session_state):
     stt_button.js_on_event('button_click', get_mic_button_js()) # second argument is a callback
     button_result = get_result(stt_button)
+
+    #nonUI_state.user_text_input_widget(session_state, value=session_state['query'])
+    # ^ says no query key when i do that... which doesn't make much sense
 
     if button_result:
         if "GET_TEXT" in button_result:
@@ -50,13 +58,14 @@ def mic_button_monitor(nonUI_state, stt_button, session_state):
             if button_result.get("GET_TEXT")["t"] != '' and button_result.get("GET_TEXT")["s"] != session_state['stt_session'] : # "s" for "session", "t" for "text"
                 print("""result.get("GET_TEXT")["t"] != '' and result.get("GET_TEXT")["s"] != session_state['stt_session']""") 
                 session_state['query'] = button_result.get("GET_TEXT")["t"]
-                nonUI_state.user_text_input_widget(session_state)
+                #nonUI_state.user_text_input_widget(tr, session_state)
+                user_text_input_surrogate(tr, session_state)
                 session_state['stt_session'] = button_result.get("GET_TEXT")["s"]
 
         if "GET_INTRM" in button_result:
             if button_result.get("GET_INTRM") != '':
                 print("GET_INTRM != ''")
-                nonUI_state.user_text_input_widget(session_state, value=session_state['query']+' '+button_result.get("GET_INTRM"))
+                user_text_input_surrogate(tr, session_state, value=session_state['query']+' '+button_result.get("GET_INTRM"))
                 #st.text_area("**Your input**", value=session_state['query']+' '+button_result.get("GET_INTRM"))
 
         if "GET_ONREC" in button_result:
@@ -72,10 +81,49 @@ def mic_button_monitor(nonUI_state, stt_button, session_state):
                 print("(GET_ONREC==stop)")
                 #if session_state['query'] != '': # maybe irrelevant
                 #    input = session_state['query']
-    else:
-        print("no button result")
-        nonUI_state.user_text_input_widget(session_state)
-        #nonUI_state.user_text_input_widget(session_state)
+
+
+def mic_button_monitor(tr, nonUI_state, stt_button, session_state):
+
+    stt_button.js_on_event('button_click', get_mic_button_js()) # second argument is a callback
+    button_result = get_result(stt_button)
+
+    #nonUI_state.user_text_input_widget(session_state, value=session_state['query'])
+    # ^ says no query key when i do that... which doesn't make much sense
+
+    if button_result:
+        if "GET_TEXT" in button_result:
+            print("GET_TEXT in result")
+            if button_result.get("GET_TEXT")["t"] != '' and button_result.get("GET_TEXT")["s"] != session_state['stt_session'] : # "s" for "session", "t" for "text"
+                print("""result.get("GET_TEXT")["t"] != '' and result.get("GET_TEXT")["s"] != session_state['stt_session']""") 
+                session_state['queried'] = button_result.get("GET_TEXT")["t"]
+                nonUI_state.user_text_input_widget(tr, session_state)
+                session_state['stt_session'] = button_result.get("GET_TEXT")["s"]
+
+        if "GET_INTRM" in button_result:
+            if button_result.get("GET_INTRM") != '':
+                print("GET_INTRM != ''")
+                nonUI_state.user_text_input_widget(tr, session_state, value=session_state['queried']+' '+button_result.get("GET_INTRM"))
+                #st.text_area("**Your input**", value=session_state['query']+' '+button_result.get("GET_INTRM"))
+
+        if "GET_ONREC" in button_result:
+            if button_result.get("GET_ONREC") == 'start':
+                #placeholder.image("recon.jpg")
+                print("(GET_ONREC==start)")
+                session_state['queried'] = ''
+                #nonUI_state.user_text_input_widget(tr, session_state, value="") # EXPERIMENT
+            elif button_result.get("GET_ONREC") == 'running':
+                #placeholder.image("recon.gif")
+                print("(GET_ONREC==running)")
+            elif button_result.get("GET_ONREC") == 'stop':
+                #placeholder.image("recon.jpg")
+                print("(GET_ONREC==stop)")
+                #if session_state['query'] != '': # maybe irrelevant
+                #    input = session_state['query']
+    #else:
+    #    print("no button result")
+    #    nonUI_state.user_text_input_widget(tr, session_state)
+    #    #nonUI_state.user_text_input_widget(session_state)
     
 
 

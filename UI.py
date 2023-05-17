@@ -12,6 +12,8 @@ from bokeh.models import CustomJS
 from random import randrange
 import stt
 
+
+
 from streamlit_bokeh_events import streamlit_bokeh_events
 
 from gtts import gTTS
@@ -42,7 +44,10 @@ class SessionNonUIState:
         if 'query' not in session_state_object:
             st.text_input("You: ", placeholder='speak or type', key="query", label_visibility="collapsed", on_change=clear_text, disabled=self.administer_rating_form)
         else:
-            st.text_input("You: ", value=session_state_object['query'], placeholder='speak or type', key="query", label_visibility="collapsed", on_change=clear_text, disabled=self.administer_rating_form)
+            if value is None:
+                st.text_input("You: ", value=session_state_object['query'], placeholder='speak or type', key="query", label_visibility="collapsed", on_change=clear_text, disabled=self.administer_rating_form)
+            else:
+                st.text_input("You: ", value=value, placeholder='speak or type', key="query", label_visibility="collapsed", on_change=clear_text, disabled=self.administer_rating_form)
 
 
 
@@ -236,7 +241,7 @@ def chat(nonUI_state):
                 st.session_state['stt_session'] = 0 # init
             mic_result = stt.mic_button(st.session_state)
         with user:
-            stt.mic_button_monitor(nonUI_state, mic_result, st.session_state)
+            stt.mic_button_monitor(nonUI_state, mic_result, st.session_state) # first time query appears
             
         with next_button:
             st.button("Next", key="next_button", on_click=on_proceed_button_click, disabled=nonUI_state.administer_rating_form)
