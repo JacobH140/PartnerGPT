@@ -218,69 +218,58 @@ def rating_form(state_object):
 
 if __name__ == '__main__':
     state = initialize_app("heading", "subheading")
-    with st.form('Query Form', clear_on_submit=True):
-        st.text_input("You: ", placeholder='speak or type', key="query", label_visibility="collapsed")
-        ratings = []
-        #user_stt()
-        if st.button("Begin" if not state.begin_button_has_been_clicked else "Next"):
-            print("next")
-            if state.begin_button_has_been_clicked:
-                state.form_submitted, ratings = rating_form(state)
-                print("form submitted: ", state.form_submitted)
-                #for index, word in enumerate(state.current_ratings.keys()):
-                #    state.current_ratings[word] = ratings[index]
-                print("other ratings: ", state.current_ratings)
-            #if 'messages' not in st.session_state:
-            state.current_vocab_word = get_next_vocab_word()
-            state.current_aux_words = get_next_aux_words()
-            #state.main_words.append(state.current_vocab_word)
-            if state.form_submitted:
-                state.messages = get_initial_message(vocab_word=state.current_vocab_word, aux_words=state.current_aux_words)
-                state.form_submitted = False
 
-            #if not state.begin_button_has_been_clicked:
-            #    st.session_state.query = "Let's begin!"
-            #else:
-            #    st.session_state.query = "Next!"
-            #print("If region query: ", st.session_state.query)
-
-
-
-
-            state.begin_button_has_been_clicked = True
-            if st.session_state.query:
-                state.messages = state.generate_bot_response(st.session_state.query, stream=True)
-                #st.session_state.query = ""
-
-            if state.generated:
-                update_UI_messages(state)
-                expander_messages_widget(state)
-
-
-        elif state.form_submitted:
-            print("form submitted")
-            #query = "" # no query here
-            #st.write("ratings: ", state.current_ratings)
-            #for i, word in enumerate([state.current_vocab_word] + state.current_aux_words):
-                #print(i)
-                #state.current_ratings[word] = ratings[i]
-            print("ratings: ", state.current_ratings)
+    st.text_input("You: ", placeholder='speak or type', key="query", label_visibility="collapsed")
+    ratings = []
+    #user_stt()
+    if st.button("Begin" if not state.begin_button_has_been_clicked else "Next"):
+        print("next")
+        if state.begin_button_has_been_clicked:
+            state.form_submitted, ratings = rating_form(state)
+            print("form submitted: ", state.form_submitted)
+            #for index, word in enumerate(state.current_ratings.keys()):
+            #    state.current_ratings[word] = ratings[index]
+            print("other ratings: ", state.current_ratings)
+        #if 'messages' not in st.session_state:
+        state.current_vocab_word = get_next_vocab_word()
+        state.current_aux_words = get_next_aux_words()
+        #state.main_words.append(state.current_vocab_word)
+        if state.form_submitted:
+            state.messages = get_initial_message(vocab_word=state.current_vocab_word, aux_words=state.current_aux_words)
             state.form_submitted = False
-
-            if state.generated:
-                update_UI_messages(state)
-                expander_messages_widget(state)
-
-        else:
-            print("ratings: ", state.current_ratings)
-            print("Else region query: ", st.session_state.query)
-            if st.session_state.query:
-                state.generate_bot_response(st.session_state.query, stream=True)
-                #st.session_state.query = ""
-
-            if state.generated:
-                update_UI_messages(state)
-                expander_messages_widget(state)
+        #if not state.begin_button_has_been_clicked:
+        #    st.session_state.query = "Let's begin!"
+        #else:
+        #    st.session_state.query = "Next!"
+        #print("If region query: ", st.session_state.query)
+        state.begin_button_has_been_clicked = True
+        if st.session_state.query:
+            state.messages = state.generate_bot_response(st.session_state.query, stream=True)
+            #st.session_state.query = ""
+        if state.generated:
+            update_UI_messages(state)
+            expander_messages_widget(state)
+    elif state.form_submitted:
+        print("form submitted")
+        #query = "" # no query here
+        #st.write("ratings: ", state.current_ratings)
+        #for i, word in enumerate([state.current_vocab_word] + state.current_aux_words):
+            #print(i)
+            #state.current_ratings[word] = ratings[i]
+        print("ratings: ", state.current_ratings)
+        state.form_submitted = False
+        if state.generated:
+            update_UI_messages(state)
+            expander_messages_widget(state)
+    else:
+        print("ratings: ", state.current_ratings)
+        print("Else region query: ", st.session_state.query)
+        if st.session_state.query:
+            state.generate_bot_response(st.session_state.query, stream=True)
+            #st.session_state.query = ""
+        if state.generated:
+            update_UI_messages(state)
+            expander_messages_widget(state)
     
             
 

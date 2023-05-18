@@ -2,7 +2,7 @@
 """
 Created on Sat Jul 18 13:01:02 2020
 
-@author: OHyic
+@author: OHyic (mostly, along with my own edits)
 """
 #import selenium drivers
 from selenium import webdriver

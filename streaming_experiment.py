@@ -18,8 +18,7 @@ import string
 from playsound import playsound
 import re
 
-os.environ['OPENAI_API_KEY'] = api_key 
-load_dotenv()
+openai.api_key = api_key
 
 
 

@@ -38,3 +38,12 @@ def get_chatgpt_response_stream_chunk(messages, model="gpt-3.5-turbo"):
 def update_chat(messages, role, content):
     messages.append({"role": role, "content": content})
     return messages
+
+def stream_chat_completion(messages, model, temperature=0):
+    return openai.ChatCompletion.create(
+        model=model,
+        messages=messages,
+        temperature=temperature,
+        stream=True  # again, we set stream=True
+    )
+

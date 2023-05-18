@@ -10,6 +10,7 @@ from apikey import api_key
 import openai
 openai.api_key = api_key
 import utils
+import re
 import ast
 
 def chatgpt_get_pinyin(word):
@@ -19,7 +20,7 @@ def chatgpt_get_pinyin(word):
     
 def chatgpt_word_segmentize(text):
     """e.g., ideally returns [我, 现在, 受不了, 了], given input 我现在受不了了]"""
-    prompt = f"""Reply with NOTHING except the segmentation for the following text: "{text}", formatted as a python list (e.g.,  ['我', '今天', '去', '吃饭', '了']). If there are multiple options, take your best guess based on context."""
+    prompt = f"""Reply with NOTHING except the segmentation for the following text: "{text}", formatted as a python list (e.g.,  ['我', '今天', '去', '吃饭', '了']). If there are multiple options, take your best guess based on context. If the input is in traditional, your output will be in traditional too."""
     while True:
         try:
             return ast.literal_eval(utils.get_chatgpt_response([{f"role":"user", "content":prompt}], temperature=0))
@@ -97,11 +98,37 @@ def text_decomposition_info(text):
     print(words)
     output = []
     for word in words:
-        output.append(word_decomposition_info(word))
+        decomp_dict = word_decomposition_info(word)
+        for key, value in zip(decomp_dict.keys(), decomp_dict.values()):
+            output.append({key: value})
     return output
 
+def chatgpt_get_classifiers(text, context_messages):
+    mw_finder_prompt = """Your job is now to list the measure word(s) that are associated with the following word(s). Respond with a Python list of chars, where each character is a relevant measure word."""
+    context_messages.extend([{"role":"system", "content":mw_finder_prompt}, {"role":"user", "content":f"The text is {text}. Remember to format your answer as a Python list of chars."}])
+    while True:
+        try:
+            mw_response = utils.get_chatgpt_response(context_messages, temperature=0)
+            context_messages = utils.update_chat(context_messages, "assistant", mw_response)
+            return ast.literal_eval(mw_response), context_messages
+        except Exception as e:
+            print("EXCEPTION", e)
+            print("Trying again, cGPT gave incorrectly formatted output")
 
+def chatgpt_make_trad_from_simplified(simplified_text):
+    # purposely don't include context_messages here, because this isn't a relevant part of the conversation
+    trad_prompt = """Your job is now to convert the provided simplified Chinese text into traditional Chinese. Respond with only the converted text."""
+    temp_messages = [{"role":"system", "content":trad_prompt}, {"role":"user", "content":f"The text is {simplified_text}."}]
+    return utils.get_chatgpt_response(temp_messages, temperature=0)
 
+def chatgpt_make_pinyin_from_simplified(simplified_text):
+    # purposely don't include context_messages here, because this isn't a relevant part of the conversation
+    pinyin_prompt = """Your job is now to convert the provided simplified Chinese text into pinyin. Respond with only the converted text. If input is 'None', reply 'None'."""
+    temp_messages = [{"role":"system", "content":pinyin_prompt}, {"role":"user", "content":f"The text is {simplified_text}."}]
+    return utils.get_chatgpt_response(temp_messages, temperature=0)
+
+def remove_non_chinese_from_string(text):
+   return  ''.join([o for o in text if re.search(u'[\u4e00-\u9fff]', o)])  # only keep non chinese entries
 
 
 
@@ -174,15 +201,14 @@ if __name__ == '__main__':
     - Dating and Relationships
     - Marriage and Weddings
 """
-word = "很矛盾."
+word = "人山人海"
 #print(utils.get_chatgpt_response([{"role":"system", "content":semantic_tags_info_prompt}, {"role":"user", "content":f"The text is {word}. Remember to format your answer as a Python list of strings"}], temperature=0))
 #print(utils.get_chatgpt_response([ {"role":"user", "content":f"is 到底 a grammar point in chinese? Answer ONLY with 'True' or 'False'"}], temperature=0))
-POS_system_prompt = """Your job is now to identify all parts-of-speech throughout the following text. Keep in mind that some words in Chinese can be multiple parts-of-speech at once, though you should not include duplicates in your response. Please format your answer as a Python list of strings, all lowercase and with no duplicate entries."""
-print(utils.get_chatgpt_response([{"role":"system", "content":POS_system_prompt}, {"role":"user", "content":f"The text is {word}. Remember to format your answer as a Python list of strings"}], temperature=0))
+#POS_system_prompt = """Your job is now to identify all parts-of-speech throughout the following text. Keep in mind that some words in Chinese can be multiple parts-of-speech at once, though you should not include duplicates in your response. Please format your answer as a Python list of strings, all lowercase and with no duplicate entries."""
+#print(utils.get_chatgpt_response([{"role":"system", "content":POS_system_prompt}, {"role":"user", "content":f"The text is {word}. Remember to format your answer as a Python list of strings"}], temperature=0))
+#
+#phrase_system_prompt = "Your job is now to identify the what type of syntactic phrase the following text is. The options are CP, TP, VP, NP, PP, AdjP, AdvP, XP, X, chengyu. Respond ONLY with your answer. If you think the text is not a phrase, respond with 'not_a_phrase'."
+#print(utils.get_chatgpt_response([{"role":"system", "content":phrase_system_prompt}, {"role":"user", "content":f"The text is {word}"}], temperature=0))
 
-phrase_system_prompt = "Your job is now to identify the what type of syntactic phrase the following text is. The options are CP, TP, VP, NP, PP, AdjP, AdvP, XP, X. Respond ONLY with your answer. If you think the text is not a phrase, respond with 'not_a_phrase'."
-print(utils.get_chatgpt_response([{"role":"system", "content":phrase_system_prompt}, {"role":"user", "content":f"The text is {word}"}], temperature=0))
-
-
-
-
+text = "这是一个中文句子but this is english再是中文"
+print(remove_non_chinese_from_string(text))

@@ -29,35 +29,33 @@ dictionary = HanziDictionary()
 import chinese_nlp_utils as cnlp
 openai.api_key = api_key
 
-def add_images(filtered_df, query_col="vocab", tries_before_giving_up=3):
+def get_image(search_query, tries_before_giving_up=3):
     # query_col gives us the searches from which images are scraped
     urls = []
-    for voc in filtered_df.loc[:, query_col].tolist():
-        approved_exts = [".jpg", ".png", ".jpeg"]
-        number_of_images = 1
+    approved_exts = [".jpg", ".png", ".jpeg"]
+    number_of_images = 1
+    try:
+        image_options = ImageScraper.scrape_images([search_query], number_of_images=number_of_images)[0] # res is still a list since I.S. outputs list of lists
+    except IndexError:
+        image_options = ["(NO IMAGE AVAILABLE)"]
+    image_options = [url for url in image_options if url[-4:] in approved_exts]
+    tries_before_giving_up = tries_before_giving_up - 1
+    while not image_options and tries_before_giving_up:
+        number_of_images = number_of_images + 1
         try:
-            image_options = ImageScraper.scrape_images([voc], number_of_images=number_of_images)[0] # res is still a list since I.S. outputs list of lists
+            image_options = ImageScraper.scrape_images([search_query], number_of_images=number_of_images)[0]  # res is still a list since I.S. outputs list of lists
         except IndexError:
             image_options = ["(NO IMAGE AVAILABLE)"]
-        image_options = [url for url in image_options if url[-4:] in approved_exts]
+        image_options = [url for url in image_options if url[-4:] in approved_exts]  # only permit image links with valid file extensions
+        #if image_options and image_options[0][-4:] not in approved_exts:  # we only care abt first valid img; check its file ext
+        #    image_options = ''
         tries_before_giving_up = tries_before_giving_up - 1
-        while not image_options and tries_before_giving_up:
-            number_of_images = number_of_images + 1
-            try:
-                image_options = ImageScraper.scrape_images([voc], number_of_images=number_of_images)[0]  # res is still a list since I.S. outputs list of lists
-            except IndexError:
-                image_options = ["(NO IMAGE AVAILABLE)"]
-            image_options = [url for url in image_options if url[-4:] in approved_exts]  # only permit image links with valid file extensions
-            #if image_options and image_options[0][-4:] not in approved_exts:  # we only care abt first valid img; check its file ext
-            #    image_options = ''
-            tries_before_giving_up = tries_before_giving_up - 1
-        try:
-            image_options = f'<img src={image_options[0]}>'  # use the first valid image
-            urls.append(image_options)
-        except IndexError:
-            urls.append("")  # (gave up trying to find a valid img)
-    filtered_df["image"] = urls
-    return filtered_df
+    try:
+        image_options = f'<img src={image_options[0]}>'  # use the first valid image
+        urls.append(image_options)
+    except IndexError:
+        urls.append("")  # (gave up trying to find a valid img)
+    return urls
 
 
 def generate_audio(audio_url, title, audio_loc):
@@ -80,13 +78,15 @@ def generate_audio(audio_url, title, audio_loc):
 
 
 def make_hsk_tag(simplified_word):
-    new_hsk_v3 = pd.read_csv("new_hsk_v3.csv")
-    hsk_v3_level = new_hsk_v3.columns[new_hsk_v3.isin([simplified_word]).any()][0]
-    if hsk_v3_level == []: # above didn't find anything
-        hsk_v3_level = "not_in_hsk_v3"
+    new_hsk_v3 = pd.read_csv("learning-data/new_HSK_3.0.csv")
+    hsk_v3_level = new_hsk_v3.columns[new_hsk_v3.isin([simplified_word]).any()]
+    if hsk_v3_level.empty: # above finds nothing
+        return "not_in_hsk_v3"
+    else:
+        return hsk_v3_level[0] # returns the first (and only) column name that contains the word
 
-    return hsk_v3_level
-    
+def flatten(l):
+    return sum(map(flatten, l), []) if isinstance(l, list) else [l]
 
 
 
@@ -118,49 +118,65 @@ def make_cards_from_text(text, source):
 
 def decomposition_info_helper(fields_dict):
     # get decomposition information — simplified
-    simpl_radicals_and_phonetics_dict_list = cnlp.text_decomposition_info(fields_dict["简体字Simplified"])
+    simpl_radicals_and_phonetics_dict_list = cnlp.text_decomposition_info(fields_dict["简体字simplified"])
 
     # get decomposition information — traditional
-    trad_radicals_and_phonetics_dict_list = cnlp.text_decomposition_info(fields_dict["繁体字Traditional"])
+    trad_radicals_and_phonetics_dict_list = cnlp.text_decomposition_info(fields_dict["繁体字traditional"])
+
+    radicals_temp_list = []
+    comp_phon_temp_list = []
+
 
     for dict in simpl_radicals_and_phonetics_dict_list:
-        for key in dict:
-            fields_dict['Radicals (Simplified)'].append((dict[key], dict[key]['radicals']))
-            fields_dict['Component Decomposition and Phonetic Regularity (Simplified)'].append((dict[key], dict[key]['phonetic_regularities']))
+        for key in dict: # only has one key?
+            radicals_temp_list.append((key, dict[key]['radicals']))
+            comp_phon_temp_list.append((key, dict[key]['phonetic_regularities']))
+    fields_dict['radicals (simplified)'] = str(radicals_temp_list)
+    fields_dict['component decomposition and phonetic regularity (simplified)'] = str(comp_phon_temp_list)
+
+    radicals_temp_list = [] # reset
+    comp_phon_temp_list = [] # reset
 
     for dict in trad_radicals_and_phonetics_dict_list:
         for key in dict:
-            fields_dict['Radicals (Traditional)'].append(dict[key], dict[key]['radicals']) 
-            fields_dict['Component Decomposition and Phonetic Regularity (Traditional)'].append((dict[key], dict[key]['phonetic_regularities']))
-
+            radicals_temp_list.append((key, dict[key]['radicals']))
+            comp_phon_temp_list.append((key, dict[key]['phonetic_regularities']))
+    fields_dict['radicals (traditional)'] = str(radicals_temp_list)
+    fields_dict['component decomposition and phonetic regularity (traditional)'] = str(comp_phon_temp_list)
     return fields_dict
 
 def mnemonic_helper(fields_dict, context_messages, gpt_model):
-    decomposition_mnemonic_prompt = f"""Write a memnonic for the each of the characters {fields_dict["简体字simplified"]} by using the meanings of their constituent radicals: {fields_dict["'Radicals (Simplified)'"]}. Then insert a paragraph break. Then do the same thing but for traditional: Write a memnonic for the each of the characters {fields_dict["繁体字traditional"]} by using the meanings of their constituent radicals: {fields_dict["'Radicals (Traditional)'"]}"""
+    decomposition_mnemonic_prompt = f"""Write a memnonic for the each of the characters {fields_dict["简体字simplified"]} by using the meanings of their constituent radicals: {fields_dict["radicals (simplified)"]}. Then insert a paragraph break. Then add a paragraph break and proceed to do the same thing but for traditional: Write a memnonic for the each of the characters {fields_dict["繁体字traditional"]} by using the meanings of their constituent radicals: {fields_dict["radicals (traditional)"]}"""
     context_messages.append({"role": "user", "content": f"{decomposition_mnemonic_prompt}"})
     second_response = utils.get_chatgpt_response(context_messages, temperature=0.7, model=gpt_model)
     context_messages = utils.update_chat(context_messages, "assistant", second_response)
     print("User: ", decomposition_mnemonic_prompt)
     print("Response: ", second_response)
 
-    fields_dict["Radicals Mnemonic"] = second_response
+    fields_dict["radicals mnemonic"] = second_response
 
     return fields_dict, context_messages
 
 def chatgpt_semantic_tags_helper(fields_dict, context_messages, gpt_model, semantic_tags_info_prompt):
     success = False
+    temperature = 0
     while not success:
-        context_messages.append([{"role":"system", "content":semantic_tags_info_prompt}, {"role":"user", "content":f"""The text is {fields_dict["简体字Simplified"]} Remember to format your answer as a Python list of strings."""}])
+        context_messages.extend([{"role":"system", "content":semantic_tags_info_prompt}, {"role":"user", "content":f"""The text is {fields_dict["简体字simplified"]} Remember to format your answer as a Python list of strings."""}])
         try:
-            response = utils.get_chatgpt_response(context_messages, temperature=0, model=gpt_model)
+            response = utils.get_chatgpt_response(context_messages, temperature=temperature, model=gpt_model)
             context_messages = utils.update_chat(context_messages, "assistant", response)
             print("User: ", semantic_tags_info_prompt)
             print("Response: ", response)
             semantic_tags = ast.literal_eval(response)
             success = True
         except Exception as e:
-            print(e)
+            print("EXCEPTION:", e)
             print("Trying again, cGPT gave incorrectly formatted output")
+            temperature += 0.2
+            if temperature > 1:
+                print("cGPT is not working, giving up")
+                semantic_tags = []
+                return fields_dict, context_messages, 
     # replace spaces of each entry in semantic_tags with underscores
     for i in range(len(semantic_tags)):
         semantic_tags[i] = semantic_tags[i].replace(" ", "_")
@@ -168,84 +184,170 @@ def chatgpt_semantic_tags_helper(fields_dict, context_messages, gpt_model, seman
 
 def chatgpt_check_if_grammar_point_tag(text, context_messages):
     prompt = f"is {text} a grammar point in Chinese? Answer ONLY with 'True' or 'False'"
+    temperature = 0
     while True:
         context_messages.append({"role":"user", "content":prompt})
         try: 
-            response = ast.literal_eval(utils.get_chatgpt_response(context_messages, temperature=0))
+            response = utils.get_chatgpt_response(context_messages, temperature=temperature)
             utils.update_chat(context_messages, "assistant", response)
+            ast.literal_eval(response)
             return response, context_messages
         except Exception as e:
             print(e)
             print("Trying again, cGPT gave incorrectly formatted output")
+            temperature += 0.2
+            if temperature > 1:
+                return "False", context_messages
           
 
 def make_frequency_percentile_tags(text):
     # e.g., if a character has the tag "top_20_percent", that means it is in the top 10% of most frequently used characters in the language
-    freq_percentile = max([dictionary.get_character_frequency(character) for character in text]["percentage"])
+    freq_percentile = max([dictionary.get_character_frequency(character)["percentage"] for character in text])
     percents = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
-    categories = ["top_10_percent", "top_20_percent", "top_30_percent", "top_40_percent", "top_50_percent", "top_60_percent", "top_70_percent", "top_80_percent", "top_90_percent", "top_100_percent"]
-    tags = []
+    categories = ["in_top_10_percent", "in_top_20_percent", "in_top_30_percent", "in_top_40_percent", "in_top_50_percent", "in_top_60_percent", "in_top_70_percent", "in_top_80_percent", "in_top_90_percent", "in_top_100_percent"]
+    freq_tags = []
     for i in range(len(categories)):
-        if freq_percentile <= percents[i]:
-            tags.append(categories[i])
-    return tags
+        if float(freq_percentile) <= percents[i]:
+            freq_tags.append(categories[i])
+    return freq_tags
 
 def chatgpt_pos_and_phrase_type_helper(text, context_messages):
     pos_system_prompt = """Your job is now to identify all parts-of-speech throughout the following text. Keep in mind that some words in Chinese can be multiple parts-of-speech at once, though you should not include duplicates in your response. Please format your answer as a Python list of strings, all lowercase and with no duplicate entries."""
-    context_messages.append([{"role":"system", "content":pos_system_prompt}, {"role":"user", "content":f"The text is {text}. Remember to format your answer as a Python list of strings."}])
+    context_messages.extend([{"role":"system", "content":pos_system_prompt}, {"role":"user", "content":f"The text is {text}. Remember to format your answer as a Python list of strings."}])
     pos_response = utils.get_chatgpt_response(context_messages, temperature=0)
     context_messages = utils.update_chat(context_messages, "assistant", pos_response)
     phrase_system_prompt = "Your job is now to identify the what type of syntactic phrase the following text is. The options are CP, TP, VP, NP, PP, AdjP, AdvP, XP, X. Respond ONLY with your answer. If you think the text is not a phrase, respond with 'not_a_phrase'."
-    context_messages.append([{"role":"system", "content":phrase_system_prompt}, {"role":"user", "content":f"The text is {text}"}])
+    context_messages.extend([{"role":"system", "content":phrase_system_prompt}, {"role":"user", "content":f"The text is {text}"}])
     phrase_response = utils.get_chatgpt_response(context_messages, temperature=0)
     context_messages = utils.update_chat(context_messages, "assistant", phrase_response)
-    return pos_response, phrase_response, context_messages
+    is_mw_system_prompt = """Your job is now to identify if the following text is or contains a measure word. If yes, respond ONLY with 'True'. If no, respond ONLY with 'False'."""
+    context_messages.extend([{"role":"system", "content":is_mw_system_prompt}, {"role":"user", "content":f"The text is {text}. Remember to write your answer as exactly one of 'True' or 'False'."}])
+    is_mw_response = utils.get_chatgpt_response(context_messages, temperature=0)
+    context_messages = utils.update_chat(context_messages, "assistant", phrase_response)
+    return pos_response, phrase_response, is_mw_response, context_messages
+
+def add_all_chinese_audio_to_note(fields_dict, url_stem, audio_loc):
+    def prepare(string_to_sonify, url_stem=url_stem, audio_loc=audio_loc):
+        url_suffix = quote(cnlp.remove_non_chinese_from_string(string_to_sonify))
+        if url_suffix:
+            audio_url = url_stem + url_suffix
+            anki_audio = str([f"[sound:{os.path.basename(generate_audio(a_url, a_url.split('=')[-1], audio_loc))}]" for a_url in [audio_url]][0])
+            return anki_audio
+        else:
+            return "[]"
+
+    fields_dict["发音/發音sound"] = prepare(fields_dict["简体字simplified"])    
+    fields_dict["量词发音/量詞發音classifier sound"] = prepare(fields_dict["量词/量詞classifier(s) simplified"])
+    fields_dict["同义词发音/同義詞發音synonyms sound"] = prepare(fields_dict["同义词/同義詞synonyms simplified"])
+    fields_dict["反义词发音/反義詞發音antonyms sound"] = prepare(fields_dict["反义词/反義詞antonyms simplified"])
+    fields_dict["例句发音/例句發音example sentence sound"] = prepare(fields_dict["例句example sentence simplified"])
+    fields_dict["related_words_sound"] = prepare(fields_dict["related words simplified"])
+    fields_dict["usages sound"] = prepare(fields_dict["usages simplified"])
+    
+    return fields_dict
 
 def radical_tags(fields_dict, simplified=True):
     if simplified:
-        key = "Radicals (Simplified)"
+        key = "radicals (simplified)"
     else:
-        key = "Radicals (Traditional)"
+        key = "radicals (traditional)"
     rad_tags = []
-    for i in range(len(fields_dict[key])):
-        for pair in fields_dict[key][i]:
+    fd_at_key = ast.literal_eval(fields_dict[key])
+    for i in range(len(fd_at_key)):
+        for pair in fd_at_key[i][1]:
             if simplified:
                 rad_tags.append(f"simpl_rad_{pair[0]}")
             else:
                 rad_tags.append(f"trad_rad_{pair[0]}")
     return rad_tags # returns a list of strings
 
+def make_all_tags(fields_dict, context_messages, gpt_model, semantic_tags_info_prompt, source_tag):
+    # begin making tags
+    tags = defaultdict(list)
+    # hsk tags
+    tags["Level"].append(make_hsk_tag(fields_dict["简体字simplified"]))
 
-def generate_fields_and_tags(text_in_english_or_simplified_or_traditional, gpt_model, context_messages=[], example_sentence_given=None, source_tag=None, audio=None, audio_loc=None, add_image=False):
+    
+
+
+    # freq tags
+    tags["Level"].append(make_frequency_percentile_tags(fields_dict["简体字simplified"])); tags["level"] = flatten(tags["level"]) # since freq tags is a list of lists
+
+    # get chatgpts response for card (semantic) TAGS
+    tags["Semantic"], context_messages = chatgpt_semantic_tags_helper(fields_dict, context_messages, gpt_model, semantic_tags_info_prompt) # returns a list of strings
+
+    # time for syntactic tags
+    is_grammar_point, context_messages = chatgpt_check_if_grammar_point_tag(fields_dict["简体字simplified"], context_messages)
+    if ast.literal_eval(is_grammar_point):
+        tags["Syntactic"].append["grammar_point"]
+    
+    pos, phrase_type, is_measure_word, context_messages = chatgpt_pos_and_phrase_type_helper(fields_dict["简体字simplified"], context_messages)
+    tags["Syntactic"].append(ast.literal_eval(pos)); tags["Syntactic"] = flatten(tags["Syntactic"]) # since pos is a list
+    if phrase_type != "not_a_phrase":
+        assert(type(phrase_type)==str)
+        tags["Syntactic"].append(phrase_type) 
+    
+    if ast.literal_eval(is_measure_word):
+        tags["Syntactic"].append("measure_word")
+
+    
+    # classifier tags
+    if fields_dict["量词/量詞classifier(s) simplified"] != "None" and fields_dict["量词/量詞classifier(s) simplified"] != "":
+        classifiers, context_messages = cnlp.chatgpt_get_classifiers(fields_dict["简体字simplified"], context_messages)
+        tags["Classifier"].append(classifiers)
+
+    if fields_dict["简体字simplified"] != fields_dict["繁体字traditional"]:
+        tags["Orthographic"].append("simplified_differs_traditional")
+
+    tags["Orthographic"].append(radical_tags(fields_dict, simplified=True))
+    tags["Orthographic"].append(radical_tags(fields_dict, simplified=False))
+    tags["Orthographic"] = list(set(list(flatten(tags["Orthographic"])))) # since radical_tags returns a list
+
+
+    tags["sources"].append(source_tag)
+
+    return tags, context_messages
+
+def chatgpt_make_trad_pinyin_from_simplified(fields_dict, keys_list):
+    n = len("simplified") # length of the word "simplified"
+    for key in keys_list:
+        fields_dict[key[:-n]+"traditional"] = cnlp.chatgpt_make_trad_from_simplified(fields_dict[key])
+        fields_dict[key[:-n]+"pinyin"] = cnlp.chatgpt_make_pinyin_from_simplified(fields_dict[key])
+
+    return fields_dict
+
+def generate_fields_and_tags(text_in_english_or_simplified_or_traditional, gpt_model, source_tag, context_messages=[], example_sentence_given=None, audio=None, audio_loc=None, add_image=False):
     # context messages are included when the function is invoked from within a conversation (e.g., during a PracticeGPT session)
 
 
     # creates a df  with fields as specified
-    fields_dict = defaultdict()
+    fields_dict = defaultdict(str)
 
     
 
     arbitrary_note_prompt = """
    You are a helpful AI Chinese language teacher, helping a student create Anki flashcards. I will give you a word in one of english, simplfied, or traditional Chinese. Please respond with the following information, formatted as a python dictionary (quoted strings are the dictionary keys).
-
-- "简体字Simplified" : the simplified Chinese word.
-- "繁体字Traditional" : the traditional Chinese word.
-- "英文English" : the English translation. Can be as long as you want for nuanced words, but be concise and clear.
-- "Simplification Process (GPT Estimate)" : the process of simplifying the traditional Chinese word to the simplified Chinese word, say "None" if the word is already simplified.
-- "Vocab pinyin" : the pinyin of the Chinese word.
-- "Etymology — GPT Conjecture" : etymology of the whole word... how do the individual characters' meaning contribute to the whole word's meaning? You may choose to analyze one or both of the simplified and traditional versions. 
-- "Categories of Characters — GPT Conjecture" : The type of each character involved, perhaps one of 象形字,  形声字, 指事字,  会意字,  转注字, 假借字. Explain your answer. If you claim a character is a 形声字, you should check that the phonetic component matches the pinyin you provided before. If not, it is not 形声字 and you should think again about this!
-- "例句Example sentence simplified" : An example sentence at the HSK3 level, in simplified Chinese. Disclude translation/pinyin.
-- "例句Example sentence traditional" : The same sentence as above in traditional Chinese.
-- "例句Example sentence pinyin" : The same sentence as above in pinyin.
-- "例句Example sentence translation" : The same sentence as above in English.
-- "Related words" : Words commonly used alongside the word, and description or example of the relation.
-- "同义词/同義詞Synonyms" : Synonyms. Include pinyin and translation.
-- "反义词/反義詞Antonyms" : Antonyms. Include pinyin and translation.
-- 量词/量詞Classifier(s) : Measure words, if relevant. Include pinyin. Say "None" if not relevant.
-- "Usages" : Any words, common phrases, idioms, etc. that use this word. Include pinyin and translation. For example, for 的 the response could be 有的时候, 别的, 是她做的，什么的. This is NOT just a place to add example sentences!
+   My Chinese is advanced enough to not need pinyin, so please do not include pinyin unless, and only when, specifically asked for.
+   
+- "简体字simplified" : the simplified Chinese word.
+- "繁体字traditional" : the traditional Chinese word.
+- "英文english" : the English translation. Can be as long as you want for nuanced words, but be concise and clear.
+- "simplification process (GPT estimate)" : the process of simplifying the traditional Chinese word to the simplified Chinese word, say "None" if the word is already simplified.
+- "vocab pinyin" : the pinyin of the Chinese word.
+- "etymology — GPT conjecture" : etymology of the whole word... how do the individual characters' meaning contribute to the whole word's meaning? You may choose to analyze one or both of the simplified and traditional versions. 
+- "categories of characters — GPT conjecture" : The type of each character involved, perhaps one of 象形字,  形声字, 指事字,  会意字,  转注字, 假借字. Explain your answer. If you claim a character is a 形声字, you should check that the phonetic component matches the pinyin you provided before. If not, it is not 形声字 and you should think again about this!
+- "例句example sentence simplified" : An example sentence at the HSK3 level, in simplified Chinese. Disclude translation/pinyin.
+- "例句example sentence translation" : The same sentence as above in English.
+- "related words simplified" : Words commonly used alongside the word, no pinyin, and description or example of the relation without pinyin. Disclude pinyin.
+- "同义词/同義詞synonyms simplified" : Synonyms, without pinyin. Include English translation. 
+- "反义词/反義詞antonyms simplified" : Antonyms, without pinyin. Include English translation.
+- "量词/量詞classifier(s) simplified": Measure words, if relevant. Say "None" if not relevant.
+- "usages simplified" : Any words, common phrases, idioms, etc. that use this word. Include translation. Disclide pinyin. For example, for 的 the response could be 有的时候, 别的, 是她做的，什么的. This is NOT just a place to add extra example sentences!
 
 Thanks!"""
+
+
+
 
     
 
@@ -313,7 +415,7 @@ Thanks!"""
     while not success:
         try:
             first_user_prompt = f"""The word is {text_in_english_or_simplified_or_traditional}. Format your response as a python dictionary (where quoted strings are the dictionary's keys)."""
-            context_messages.append([{"role": "system", "content": f"{arbitrary_note_prompt}"},{"role": "user", "content": f"{first_user_prompt}"}])
+            context_messages.extend([{"role": "system", "content": f"{arbitrary_note_prompt}"},{"role": "user", "content": f"{first_user_prompt}"}])
             first_response = utils.get_chatgpt_response(context_messages, temperature=0.7, model=gpt_model)
             context_messages = utils.update_chat(context_messages, "assistant", first_response)
             print("System: ", arbitrary_note_prompt)
@@ -325,6 +427,11 @@ Thanks!"""
             print(e)
             print("Trying again, cGPT gave incorrectly formatted output")
 
+    fields_dict = chatgpt_make_trad_pinyin_from_simplified(fields_dict, ["例句example sentence simplified", "related words simplified", "同义词/同義詞synonyms simplified", "反义词/反義詞antonyms simplified", "量词/量詞classifier(s) simplified", "usages simplified"])
+
+    # FOR TESTING:
+    fields_dict["简体字simplified"] = "做米饭"
+    fields_dict["繁体字traditional"] = "做米飯"
 
     # get decomposition information (simplified and traditional)
     fields_dict = decomposition_info_helper(fields_dict)
@@ -333,74 +440,24 @@ Thanks!"""
     fields_dict, context_messages = mnemonic_helper(fields_dict, context_messages, gpt_model)
 
 
-
-    # begin making tags
-    tags = defaultdict(list)
-    # hsk tags
-    tags["Level"].append(make_hsk_tag(fields_dict["简体字Simplified"]))
-
-    # freq tags
-    tags["Level"].append(make_frequency_percentile_tags(fields_dict["简体字Simplified"]))
-
-    # get chatgpts response for card (semantic) TAGS
-    tags["Semantic"], context_messages = chatgpt_semantic_tags_helper(fields_dict, context_messages, gpt_model) # returns a list of strings
-
-    # time for syntactic tags
-    is_grammar_point, context_messages = chatgpt_check_if_grammar_point_tag(fields_dict["简体字Simplified"], context_messages)
-    if is_grammar_point:
-        tags["Syntactic"].append["grammar_point"]
-    
-    pos, phrase_type, context_messages = chatgpt_pos_and_phrase_type_helper(fields_dict["简体字Simplified"], context_messages)
-    tags["Syntactic"].append(pos); tags["Syntactic"].flatten() # since pos is a list
-    if phrase_type != "not_a_phrase":
-        assert(type(phrase_type)==str)
-        tags["Syntactic"].append(phrase_type) 
-    
-    if fields_dict["量词/量詞Classifier(s)"] != "None":
-        tags["Syntactic"].append("measure_word")
-
-    if fields_dict["简体字Simplified"] != fields_dict["繁体字Traditional"]:
-        tags["Orthographic"].append("simplified_differs_traditional")
-
-    tags["Orthographic"].append(radical_tags(fields_dict, simplified=True))
-    tags["Orthographic"].append(radical_tags(fields_dict, simplified=False))
-    tags["Orthographic"].flatten() # since radical_tags returns a list
-
-    
+    # make tags
+    tags = make_all_tags(fields_dict, context_messages, gpt_model, semantic_tags_info_prompt, source_tag)
 
 
-
-
-
-
-    
-
-    
-
-    if source_tag is not None:
-        #if type(tag) is not list:  # then user wants the same tag for every entry
-        #    tag = [tag] * len(translation)
-        fields_dict["tags"] = source_tag
-
-
-    if add_pinyin:
-        fields_dict["pinyin"] = [generate_pinyin(s) for s in simplified]
-
-
-    if add_traditional:
-        fields_dict["traditional"] = [chinese_converter.to_traditional(s) for s in simplified]
-
+    # add audio
     if audio == 'url':
+        assert(audio_loc is not None)
         url_stem = "https://translate.google.com/translate_tts?ie=UTF-8&tl=zh-CN&client=tw-ob&q="
-        audio_url = [url_stem + quote(s) for s in simplified]
-        anki_audio = [f"[sound:{os.path.basename(generate_audio(a_url, a_url.split('=')[-1], audio_loc))}]" for a_url in audio_url]
-        fields_dict["audio"] = anki_audio
+        fields_dict = add_all_chinese_audio_to_note(fields_dict, url_stem, audio_loc)
 
-    # construct df
-    df = pd.DataFrame(fields_dict)
-
-    # add image column to df if requested
+    # add image
     if add_image:
-        df = add_images(df, query_col=simplified_col_name)
+        fields_dict["image"] = get_image(query=fields_dict["简体字simplified"])
 
-    return df
+    return fields_dict, tags
+
+if __name__ == '__main__':
+    simplified = "做米饭"
+    test_fields_dict, test_tags = generate_fields_and_tags(simplified, gpt_model="gpt-3.5-turbo", source_tag="make_cards.py_main", audio="url", audio_loc="/Users/jacobhume/PycharmProjects/ChineseAnki/translation-audio", add_image=True)
+    print("test fields_dict: ", test_fields_dict)
+    print("test tags: ", test_tags)
