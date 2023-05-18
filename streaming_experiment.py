@@ -123,15 +123,15 @@ if __name__ == '__main__':
                     tts = gTTS(to_sonify, lang='zh-cn')
                     tts.save(to_sonify + '.mp3')
                     #autoplay_audio(to_sonify + '.mp3')
-                    #playsound(to_sonify + '.mp3')
+                    playsound(to_sonify + '.mp3')
                     print("sonifying: ", to_sonify)
                     #st.audio(to_sonify + '.mp3')
                     st.session_state['response_so_far'] = response_so_far
                     #st.audio(to_sonify + '.mp3')
                     st.session_state['currently_sonifying'] = to_sonify
                     st.success(response_so_far)
-                    autoplay_audio(st.session_state['currently_sonifying'] + '.mp3')
-                    time.sleep(3) 
+                    #autoplay_audio(st.session_state['currently_sonifying'] + '.mp3')
+                    #time.sleep(3) 
                     
                     
           # if st.session_state['currently_sonifying']:

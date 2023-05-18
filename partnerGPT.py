@@ -11,6 +11,10 @@ from bokeh.models.widgets import Button
 from bokeh.models import CustomJS
 from random import randrange
 import stt
+import string
+from playsound import playsound
+import base64
+import chinese_nlp_utils as cnlp
 
 
 
@@ -21,8 +25,63 @@ from io import BytesIO
 import openai
 openai.api_key = api_key
 
+def remove_text_inside_brackets(text, brackets="()[]"):
+    count = [0] * (len(brackets) // 2) # count open/close brackets
+    saved_chars = []
+    for character in text:
+        for i, b in enumerate(brackets):
+            if character == b: # found bracket
+                kind, is_close = divmod(i, 2)
+                count[kind] += (-1)**is_close # `+1`: open, `-1`: close
+                if count[kind] < 0: # unbalanced bracket
+                    count[kind] = 0  # keep it
+                else:  # found bracket to remove
+                    break
+        else: # character is not a [balanced] bracket
+            if not any(count): # outside brackets
+                saved_chars.append(character)
+    return ''.join(saved_chars)
+
+def autoplay_audio(file_path):
+    with open(file_path, "rb") as f:
+        data = f.read()
+        b64 = base64.b64encode(data).decode()
+        md = f"""
+            <audio autoplay="true">
+            <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
+            </audio>
+            """
+        st.markdown(
+                md,
+                unsafe_allow_html=True,
+            )
+
+punctuation = r"""!?.;:。。()[]？。、；：-""" 
+def has_punctuation(s):  
+    return any([c in punctuation for c in s])
+
+def remove_spaces_punctuation(input_string):
+    # Remove spaces
+    #input_string_no_space_punc = input_string.replace(" ", "")
+    input_string_no_space_punc = input_string
+    for c in input_string_no_space_punc:
+        if c in punctuation:
+            input_string_no_space_punc = input_string_no_space_punc.replace(c, "")
+    
+    # Remove punctuation
+    #input_string = input_string.translate(str.maketrans("", "", string.punctuation))
+    print("BEFORE ", input_string)
+    input_string_no_space_punc = ' '.join(input_string_no_space_punc.split())
+    print("AFTER ", input_string_no_space_punc)
+    return input_string_no_space_punc
+
 class SessionNonUIState:
     def __init__(self):
+        self.vocab_words_testing_temp = ["滑冰", "大象", "默契", "矛盾"]
+        self.aux_words_testing_temp = ["熊猫", "熊猫", "影响"]
+
+        self.audio_playing = False
+
         self.chatting_has_begun = False
         self.model = None
         self.messages = []
@@ -45,7 +104,8 @@ class SessionNonUIState:
         tr.text_input("You: ", key="query", value="test value", placeholder='speak or type', label_visibility="collapsed", on_change=clear_text, disabled=self.administer_rating_form)
 
 
-    def stream_response(self, messages):
+    def stream_response(self, messages, real_time_audio=False):
+        # real-time audio is experimental and will only work when running locally from mac.
         with st.empty():
             # create variables to collect the stream of chunks
             collected_chunks = []
@@ -56,26 +116,67 @@ class SessionNonUIState:
                 chunk_message = chunk['choices'][0]['delta']  # extract the message
                 collected_messages.append(chunk_message)  # save the message
                 response = ''.join([m.get('content', '') for m in collected_messages])
+                prev_response_so_far = st.session_state['response_so_far']
+                if len(response) > len(prev_response_so_far):
+                   st.success(response)
+                   print("new response_so_far", response)
+                   print("old response_so_far", prev_response_so_far)
+                   print("sonified so far", st.session_state['sonified_so_far'])
+                   to_sonify = response[len(st.session_state['sonified_so_far']):len(response)]
+                   v = response[len(prev_response_so_far):len(response)]      
+                   if has_punctuation(v) and real_time_audio: # only sonify clause-like structures, and  don't sonify parentheses contents 
+                        split, langs = cnlp.split_text(to_sonify)
+                        print("--ENTERED SONIFICATION STAGE, split is-- ", split)
+                        for s in range(len(split)):
+                            print('candidate string is ', split[s])
+                            print("BEFORE PINYIN/PUNC REMOVAL", split[s])
+                            print("AFTER PUNC REMOVAL", remove_spaces_punctuation(split[s]))
+                            print("AFTER PINYIN/PUNC REMOVAL", cnlp.remove_pinyin_tone_marked_ish(remove_spaces_punctuation(split[s])))
+                            if cnlp.remove_pinyin_tone_marked_ish(remove_spaces_punctuation(split[s])):
+                                print("SONIFYING: ", split[s])
+                                tts = gTTS(cnlp.remove_pinyin_tone_marked_ish(remove_spaces_punctuation(split[s])).strip(), lang=langs[s])
+                                tts.save("sonify" + '.mp3')
+                                #if not cnlp.is_pinyin_tone_marked(remove_spaces_punctuation(split[s])):
+                                playsound("sonify" + '.mp3')
+                                print("sonifying: ", to_sonify)
+                                st.session_state['sonified_so_far'] = response
+                       #st.audio(to_sonify + '.mp3')
+                   st.session_state['response_so_far'] = response
+                       #st.audio(to_sonify + '.mp3')
+                   st.session_state['currently_sonifying'] = to_sonify
+                   st.success(response)
+                       #autoplay_audio(st.session_state['currently_sonifying'] + '.mp3')
+                       #time.sleep(3) 
+        
                 st.success(response)
+            if not real_time_audio and not self.audio_playing:
+                tts = gTTS(remove_text_inside_brackets(response), lang='zh-cn')
+                print(remove_text_inside_brackets(response))
+                tts.save("response.mp3")
+                autoplay_audio("response.mp3")
+
+            if st.session_state['response_so_far'] == st.session_state['sonified_so_far']:
+                st.session_state['response_so_far'] = ""
+                st.session_state['sonified_so_far'] = ""
+
             return response
 
     def generate_bot_response_placeholder(self, query):
-        with st.spinner("generating..."):
-            messages = self.messages
-            messages = update_chat(messages, "user", query)
-            print(query)
-            self.past.append(query)
-            update_UI_messages(self)
-            print(messages)
-            
-            response = self.stream_response(messages) # this is where the model would be called etc
-            messages = update_chat(messages, "assistant", response)
-            self.generated.append(response)
-            self.reviewed.append("")
+        #with st.spinner("generating..."):
+        messages = self.messages
+        messages = update_chat(messages, "user", query)
+        self.past.append(query)
+        update_UI_messages(self)
+        response = self.stream_response(messages, real_time_audio=True) # this is where the model would be called etc
+        messages = update_chat(messages, "assistant", response)
+        self.generated.append(response)
+        self.reviewed.append("")
 
 
         return messages
     
+
+
     def review_notif(self, str):
         self.generated.append("")
         self.past.append("")
@@ -119,6 +220,8 @@ def update_UI_messages(state_object):
 def initialize_app(heading, subheading):
     #st.title(heading)
     #st.subheader(subheading)
+
+    
     if 'state' not in st.session_state:
         st.session_state.state = SessionNonUIState()
 
@@ -177,7 +280,7 @@ def UI_controls(nonUI_state):
         st.button("Next", key="next_button", on_click=on_proceed_button_click, disabled=nonUI_state.administer_rating_form)
 
 def on_proceed_button_click():
-    nonUI_state.messages = get_initial_message_placeholder()
+    nonUI_state.messages = get_initial_message(nonUI_state.vocab_words_testing_temp.pop(), nonUI_state.aux_words_testing_temp)
     if nonUI_state.chatting_has_begun:
         nonUI_state.administer_rating_form = True
         clear_text()
@@ -196,6 +299,12 @@ def on_proceed_button_click():
 def chat(nonUI_state):
     if "queried" not in st.session_state:
         st.session_state["queried"] = ""
+
+    if 'response_so_far' not in st.session_state:
+        st.session_state['response_so_far'] = ""
+
+    if 'sonified_so_far' not in st.session_state:
+        st.session_state['sonified_so_far'] = ""
     
     #st.button("Begin" if not nonUI_state.chatting_has_begun else "Next", key="proceed_button", on_click=on_proceed_button_click)
     if not nonUI_state.chatting_has_begun:

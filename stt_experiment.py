@@ -7,12 +7,29 @@ from streamlit_bokeh_events import streamlit_bokeh_events
 from gtts import gTTS
 from io import BytesIO
 import openai
+import string
 
-import UI
 
 from apikey import api_key
 
 openai.api_key = api_key
+
+def has_punctuation(s):
+    punctuation = r"""!?.,;:。。，()[]？""" 
+    return any([c in punctuation for c in s])
+
+
+def remove_spaces_punctuation(input_string):
+    # Remove spaces
+    input_string = input_string.replace(" ", "")
+    
+    # Remove punctuation
+    input_string = input_string.translate(str.maketrans("", "", string.punctuation))
+    
+    return input_string
+
+if 'response_so_far' not in st.session_state:
+    st.session_state['response_so_far'] = ""
 
 if 'state' not in st.session_state:
     st.session_state['state'] = None

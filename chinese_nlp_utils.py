@@ -12,6 +12,8 @@ openai.api_key = api_key
 import utils
 import re
 import ast
+from unidecode import unidecode
+
 
 def chatgpt_get_pinyin(word):
     """e.g., returns ['shou4', 'bu4', 'liao3'], given input 受不了了]"""
@@ -131,6 +133,27 @@ def remove_non_chinese_from_string(text):
    return  ''.join([o for o in text if re.search(u'[\u4e00-\u9fff]', o)])  # only keep non chinese entries
 
 
+def split_text(text):
+    segments = re.split(r'(?<=[\u4e00-\u9fa5])(?=[^\u4e00-\u9fa5])|(?<=[^\u4e00-\u9fa5])(?=[\u4e00-\u9fa5])', text)
+    language_tags = ['zh-tw' if re.search(r'[\u4e00-\u9fa5]', segment) else 'en' for segment in segments]
+    return segments, language_tags
+
+def is_pinyin_tone_marked(s):
+    # The following pattern matches Latin letters followed by diacritics
+    pinyin_tone_marked_regex = r"\b([a-zA-ZüÜāēīōūǖĀĒĪŌŪǕáéíóúǘÁÉÍÓÚǗǎěǐǒǔǚǍĚǏǑǓǙàèìòùǜÀÈÌÒÙǛ]+\s*)+\b"
+    return re.fullmatch(pinyin_tone_marked_regex, s) is not None
+
+def remove_pinyin_tone_marked_ish(text):
+    # Split the text into words
+    words = text.split()
+
+    # Remove words with diacritics, but preserve chinese characters
+    words = [word for word in words if word == unidecode(word) or re.search(u'[\u4e00-\u9fff]', word)]
+
+    # Join words back into a string
+    text = ' '.join(words)
+
+    return text
 
 
     
@@ -212,3 +235,12 @@ word = "人山人海"
 
 text = "这是一个中文句子but this is english再是中文"
 print(remove_non_chinese_from_string(text))
+
+text =  "this is english  english again" 
+print(split_text(text))
+
+text = "máo)"
+print(is_pinyin_tone_marked(text))
+
+text = "This is a test: 中文 nǐ hǎo, wǒ shì māo more english"
+print(remove_pinyin_tone_marked_ish(text)) # eats everything but punctuation
