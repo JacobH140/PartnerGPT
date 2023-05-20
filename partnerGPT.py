@@ -150,10 +150,13 @@ class SessionNonUIState:
         
                 st.success(response)
             if not real_time_audio and not self.audio_playing:
-                tts = gTTS(remove_text_inside_brackets(response), lang='zh-cn')
-                print(remove_text_inside_brackets(response))
-                tts.save("response.mp3")
-                autoplay_audio("response.mp3")
+                pass
+                ##tts = gTTS(remove_text_inside_brackets(response), lang='zh-cn')
+                ##print(remove_text_inside_brackets(response))
+                ##tts.save("response.mp3")
+                ##autoplay_audio("response.mp3")
+                ###st.success(response)
+                ###update_UI_messages(self)
 
             if st.session_state['response_so_far'] == st.session_state['sonified_so_far']:
                 st.session_state['response_so_far'] = ""
@@ -167,7 +170,7 @@ class SessionNonUIState:
         messages = update_chat(messages, "user", query)
         self.past.append(query)
         update_UI_messages(self)
-        response = self.stream_response(messages, real_time_audio=True) # this is where the model would be called etc
+        response = self.stream_response(messages, real_time_audio=False) # this is where the model would be called etc
         messages = update_chat(messages, "assistant", response)
         self.generated.append(response)
         self.reviewed.append("")
@@ -265,16 +268,16 @@ def UI_controls(nonUI_state):
     st.divider()
     mic, user, next_button = st.columns([2,30,4])
     with mic:
-        st.button("🎙️", key="mic_button", disabled=nonUI_state.administer_rating_form)
-        #if 'stt_session' not in st.session_state:
-        #    st.session_state['stt_session'] = 0 # init
-        #stt_button = stt.mic_button()
+        #st.button("🎙️", key="mic_button", disabled=nonUI_state.administer_rating_form)
+        if 'stt_session' not in st.session_state:
+            st.session_state['stt_session'] = 0 # init
+        stt_button = stt.mic_button()
     with user:
         if 'query' not in st.session_state:
             st.session_state['query'] = ''
         tr = st.empty()
         nonUI_state.user_text_input_widget(tr, st.session_state)
-        #stt.mic_button_monitor(tr, nonUI_state, stt_button, st.session_state) 
+        stt.mic_button_monitor(tr, nonUI_state, stt_button, st.session_state) 
         
     with next_button:
         st.button("Next", key="next_button", on_click=on_proceed_button_click, disabled=nonUI_state.administer_rating_form)

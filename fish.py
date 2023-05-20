@@ -18,8 +18,9 @@ TODO= None
 if 'state' not in st.session_state:
     st.session_state['state'] = UI.SessionNonUIState()
 
-
 mic, user, next_button = st.columns([2,30,4])
+
+nonUI_state = st.session_state.state # state error is throw iff this is placed on line 20
 with mic:
     if 'stt_session' not in st.session_state:
         st.session_state['stt_session'] = 0 # init
@@ -36,4 +37,3 @@ with user:
 with next_button:
     st.button("Next", key="next_button", disabled=True) 
 
-nonUI_state = st.session_state.state

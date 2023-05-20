@@ -106,7 +106,7 @@ def text_decomposition_info(text):
     return output
 
 def chatgpt_get_classifiers(text, context_messages):
-    mw_finder_prompt = """Your job is now to list the measure word(s) that are associated with the following word(s). Respond with a Python list of chars, where each character is a relevant measure word."""
+    mw_finder_prompt = """Your job is now to list the measure word(s) that are associated with the following word(s). Respond with only a Python list, where each entry is a relevant measure word without pinyin."""
     context_messages.extend([{"role":"system", "content":mw_finder_prompt}, {"role":"user", "content":f"The text is {text}. Remember to format your answer as a Python list of chars."}])
     while True:
         try:

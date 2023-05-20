@@ -41,7 +41,7 @@ def create_audio_dict(audio):
     return audio_dict
 
 
-def add_note(fields_dict, deck_name, model_name, audio_dict=None, tags=""):
+def add_note(fields_dict, deck_name, model_name, audio_dict=None, tags=[]):
     return invoke('addNote',
         note = {
             "deckName": deck_name,
@@ -52,7 +52,7 @@ def add_note(fields_dict, deck_name, model_name, audio_dict=None, tags=""):
             "duplicateScope": "deck",
             "duplicateScopeOptions": { "deckName": "Export", "checkChildren": False}
             },
-            "tags": [tags],
+            "tags": tags,
             #"audio": [audio_dict],
         }
     )
