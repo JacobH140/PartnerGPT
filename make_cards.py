@@ -28,7 +28,11 @@ decomposer = HanziDecomposer()
 from hanzipy.dictionary import HanziDictionary
 dictionary = HanziDictionary()
 import chinese_nlp_utils as cnlp
+import jieba
 openai.api_key = api_key
+
+def remove_nonalnum(_str):
+    return ''.join(_char for _char in _str.lower() if _char.isalnum())
 
 def get_image(search_query, tries_before_giving_up=3):
     # query_col gives us the searches from which images are scraped
@@ -89,11 +93,24 @@ def make_hsk_tag(simplified_word):
 def flatten(l):
     return sum(map(flatten, l), []) if isinstance(l, list) else [l]
 
+def find_unknown_vocabs(simplifieds, known_vocab_csv='learning-data/known-vocab.csv'):
+    return [find_unknown_vocab(s, known_vocab_csv) for s in simplifieds]
 
+def find_unknown_vocab(simplified, known_vocab_csv='learning-data/known-vocab.csv'):
+    output = []
+    jieba.enable_paddle()
+    seg_list = jieba.cut(simplified, use_paddle=True)
+    kv_df = pd.read_csv(known_vocab_csv, sep='\t')
+    for word in seg_list:
+        word = remove_nonalnum(word)  # chinese characters are alnum; this is to prevent spaces, punctuation, etc from being added
+        if word and word not in kv_df['vocab'].tolist():
+            output.append(word)
+
+    output = [o for o in output if re.search(u'[\u4e00-\u9fff]', o)]  # only keep non chinese entries
+    return output
 
     
-    
-def make_cards_from_text(text, source):
+def make_anki_notes_from_text(text, source, context_messages):
     """Inputs:
         text_in_english_or_simplified_or_traditional (3 categories): a string of text in English, simplified Chinese, or traditional Chinese, such as one of...
         1- English word ("shirt")              
@@ -111,11 +128,29 @@ def make_cards_from_text(text, source):
         components (e.g., words, small phrases, idioms), and a single Anki note will be created for each of these component. The trick is that the a text will be ADDED as an 'example sentence' for a 
         note created out of one of its 'atoms', and will hence appear as a cloze card and perhaps be factored into PracticeGPT conversations down the line. 
         So, although there won't be a full note dedicated to a large chunk of text, that specific text will still be factored into the learning process.
-        Case 3 is actually probably not going to be implemented; PracticeGPT will just be able to make it part of case 2 conceptually... but leaving it here for now.
+        Case 3 is actually probably not going to be implemented explicitly; PartnerGPT will just be able to make it part of case 2 conceptually... but leaving it here for now.
     Source: where this function is being called from. Examples include 'integrated_chinese_chapter_x', 'practice_gpt_review_session', 'practice_gpt_conversation', etc.
             this will be the 'source tag' for the resulting note(s) in Anki.
     """
-    card_seeds = cnlp.chatgpt_smartish_segmentize(text) # the bits of text that will be used to create Anki notes
+
+    # translate text from english or traditional into simplified Chinese if it's not already in simplified Chinese, to segmentize
+    simplified = cnlp.chatgpt_translate(text, context_messages)
+
+    #unknown_vocabs = find_unknown_vocabs([simplified])
+
+    note_starts = cnlp.jieba_segmentize(simplified) # the bits of text that will be used to create Anki notes
+
+    if [simplified] == note_starts: # if the text is just a single word
+        example_sentence = None
+    else:
+        example_sentence = simplified
+
+    for n in note_starts:
+        #if n not in unknown_vocabs:
+            fields_dict, tags_dict = generate_fields_and_tags(n, context_messages=context_messages, example_sentence_given=example_sentence, gpt_model="gpt-3.5-turbo", source_tag=source, audio="url", audio_loc="/Users/jacobhume/PycharmProjects/ChineseAnki/translation-audio", add_image=False)
+            tags = tags_dict_to_tags_list(tags_dict)
+            anki_utils.add_note(fields_dict, deck_name="中文", model_name="中文生词", tags=tags)
+
 
 def remove_irrelevant_phonetic_info_helper(comp_phon_list):
     """This function takes a list of tuples of the form (character, phonetic_info) and removes the radicals that bear no relation to character"""
@@ -125,6 +160,44 @@ def remove_irrelevant_phonetic_info_helper(comp_phon_list):
         if "no regularity" in regularity:
             comp_phon_list.remove(entry)
     return comp_phon_list
+
+def format_and_sort_radical_info(data):
+    plaintext_list = ""
+    for character, components in data:
+        plaintext_list += f'{character}\n'
+        for component, meaning in components:
+            plaintext_list += f' - {component}: {meaning}\n'
+    return plaintext_list
+
+
+def format_and_sort_phonetic_info(data):
+    # Define the order of the sort categories
+    sort_order = ['Exact Match (with tone)', 'Syllable Match (without tone)', 'Rhymes (similar finals)', 'Alliterates (similar initials)', 'No Regularity']
+
+    # Initialize the string to hold the formatted results
+    formatted_results = ""
+
+    # For each character and its components in the data...
+    for character, components in data:
+        # Sort the components according to the sort order
+        components.sort(key=lambda x: sort_order.index(x[2].split(' with ')[0]) if x[2] and x[2].split(' with ')[0] in sort_order else len(sort_order))
+
+        # Add the character to the formatted results
+        formatted_results += f'{character}\n'
+
+        # For each sorted component...
+        for component, reading, regularity in components:
+            # If the component has a regularity and a reading...
+            if regularity and reading:
+                # Add the component, its reading, and its regularity to the formatted results
+                formatted_results += f' - {component} ({reading}): {regularity}\n'
+            # If the component doesn't have a regularity or a reading...
+            else:
+                # Add just the component to the formatted results
+                formatted_results += f' - {component}\n'
+
+    # Return the formatted results
+    return formatted_results
 
 def decomposition_info_helper(fields_dict):
 
@@ -146,9 +219,9 @@ def decomposition_info_helper(fields_dict):
         for key in dict: # only has one key?
             radicals_temp_list.append((key, dict[key]['radicals']))
             comp_phon_temp_list.append((key, dict[key]['phonetic_regularities']))
-    fields_dict['radicals (simplified)'] = str(radicals_temp_list)
+    fields_dict['radicals (simplified)'] = str(format_and_sort_radical_info(radicals_temp_list))
     
-    fields_dict['component decomposition and phonetic regularity (simplified)'] = str(comp_phon_temp_list)
+    fields_dict['component decomposition and phonetic regularity (simplified)'] = str(format_and_sort_phonetic_info(comp_phon_temp_list))
 
     radicals_temp_list = [] # reset
     comp_phon_temp_list = [] # reset
@@ -158,8 +231,10 @@ def decomposition_info_helper(fields_dict):
             radicals_temp_list.append((key, dict[key]['radicals']))
             comp_phon_temp_list.append((key, dict[key]['phonetic_regularities']))
     
-    fields_dict['radicals (traditional)'] = str(radicals_temp_list)
-    fields_dict['component decomposition and phonetic regularity (traditional)'] = str(comp_phon_temp_list)
+    # make it into a nice html list
+
+    fields_dict['radicals (traditional)'] = str(format_and_sort_radical_info(radicals_temp_list))
+    fields_dict['component decomposition and phonetic regularity (traditional)'] = str(format_and_sort_phonetic_info(comp_phon_temp_list))
     return fields_dict
 
 def mnemonic_helper(fields_dict, context_messages, gpt_model):
@@ -356,9 +431,12 @@ def generate_fields_and_tags(text_in_english_or_simplified_or_traditional, gpt_m
 - "例句example sentence simplified" : An example sentence at the HSK3 level, in simplified Chinese. Disclude translation/pinyin.
 - "例句example sentence translation" : The same sentence as above in English.
 - "related words simplified" : Words commonly used alongside the word, no pinyin, and description or example of the relation without pinyin. Disclude pinyin.
-- "同义词/同義詞synonyms simplified" : Synonyms, without pinyin. Include English translation. 
-- "反义词/反義詞antonyms simplified" : Antonyms, without pinyin. Include English translation.
+- "同义词/同義詞synonyms simplified" : Synonyms, without pinyin. I repeat, no pinyin allowed. 
+- "同义词/同義詞synonyms translation" : English translation of the synonyms. Disclude pinyin.
+- "反义词/反義詞antonyms simplified" : Antonyms, without pinyin. I repeat, no pinyin allowed.
+- "反义词/反義詞antonyms translation" : English translation of the antonyms. Disclude pinyin.
 - "量词/量詞classifier(s) simplified": Measure words, if relevant. Say "None" if not relevant.
+- "量词/量詞classifier(s) translation": English translation/explanation of the measure words. Disclude pinyin.
 - "usages simplified" : Any words, common phrases, idioms, etc. that use this word. Include translation. Disclide pinyin. For example, for 的 the response could be 有的时候, 别的, 是她做的，什么的. This is NOT just a place to add extra example sentences!
 - "Usage Notes" : Any other remarks on usage, e.g., "this word is only used in Taiwan", "this word is only used in the context of X" and so on... will become a FAQ field when I'm reviewing. No more than one or two sentences.
 Thanks!"""
@@ -481,9 +559,10 @@ def tags_dict_to_tags_list(tags_dict):
     return tags_list    
 
 if __name__ == '__main__':
-    simplified = "做米饭"
-    test_fields_dict, test_tags_dict = generate_fields_and_tags(simplified, gpt_model="gpt-3.5-turbo", source_tag="make_cards.py_main", audio="url", audio_loc="/Users/jacobhume/PycharmProjects/ChineseAnki/translation-audio", add_image=False)
-    test_tags = tags_dict_to_tags_list(test_tags_dict)
-    anki_utils.add_note(test_fields_dict, deck_name="中文", model_name="中文生词", tags=test_tags)
-    print("test fields_dict: ", test_fields_dict)
-    print("test tags: ", test_tags)
+    simplified = "昨天晚上"
+    #test_fields_dict, test_tags_dict = generate_fields_and_tags(simplified, gpt_model="gpt-3.5-turbo", source_tag="make_cards.py_main", audio="url", audio_loc="/Users/jacobhume/PycharmProjects/ChineseAnki/translation-audio", add_image=False)
+    #test_tags = tags_dict_to_tags_list(test_tags_dict)
+    #anki_utils.add_note(test_fields_dict, deck_name="中文", model_name="中文生词", tags=test_tags)
+    #print("test fields_dict: ", test_fields_dict)
+    #print("test tags: ", test_tags)
+    make_anki_notes_from_text(simplified, source="test", context_messages=[])

@@ -49,7 +49,7 @@ def mic_button_monitor_surrogate(tr, stt_button, session_state):
     stt_button.js_on_event('button_click', get_mic_button_js()) # second argument is a callback
     button_result = get_result(stt_button)
 
-    #nonUI_state.user_text_input_widget(session_state, value=session_state['query'])
+    ###nonUI_state.user_text_input_widget(session_state, value=session_state['query'])
     # ^ says no query key when i do that... which doesn't make much sense
 
     if button_result:

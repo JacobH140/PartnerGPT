@@ -11,20 +11,34 @@ import openai
 import stt
 import UI
 
-TODO= None
-
-
-
-
 if 'state' not in st.session_state:
-    st.session_state['state'] = UI.SessionNonUIState()
+    st.session_state['state'] = None
 
-nonUI_state = st.session_state.state # state error is throw iff this is placed on line 20
+tr = st.empty()
+nonUI_state = st.session_state.state # state error is thrown iff this is placed before buttons' init
+
+
 
 mic, user, next_button = st.columns([2,30,4])
+if 'stt_session' not in st.session_state:
+    st.session_state['stt_session'] = 0 # init
+
+stt_button = stt.mic_button()
+
+if 'query' not in st.session_state:
+    st.session_state['query'] = ''
 
 
-#nonUI_state = st.session_state.state # state error is throw iff this is placed on line 20
+
+#nonUI_state.user_text_input_widget(tr, st.session_state)
+#stt.user_text_input_surrogate(tr, st.session_state)
+#stt.mic_button_monitor_surrogate(tr, stt_button, st.session_state) 
+
+
+
+
+
+
 with mic:
     if 'stt_session' not in st.session_state:
         st.session_state['stt_session'] = 0 # init
@@ -40,4 +54,3 @@ with user:
 
 with next_button:
     st.button("Next", key="next_button", disabled=True) 
-

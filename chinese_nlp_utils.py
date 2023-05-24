@@ -12,14 +12,23 @@ openai.api_key = api_key
 import utils
 import re
 import ast
+import jieba
 from unidecode import unidecode
 
+def chinese_stopwords():
+    return ["、","。","〈","〉","《","》","一","一个"]
 
 def chatgpt_get_pinyin(word):
     """e.g., returns ['shou4', 'bu4', 'liao3'], given input 受不了了]"""
     prompt = f"""Reply with NOTHING except the pinyin for the following word: {word}, formatted as a python list (e.g.,  ["shou4", "bu4", "liao3", "le5"]). If there are multiple options, take your best guess based on context."""
     return ast.literal_eval(utils.get_chatgpt_response([{f"role":"user", "content":prompt}], temperature=0))
-    
+
+def jieba_segmentize(text, remove_stopwords=True):
+    res = jieba.lcut_for_search(text)
+    if remove_stopwords:
+        res = [r for r in res if r not in chinese_stopwords()]
+    return res
+
 def chatgpt_word_segmentize(text):
     """e.g., ideally returns [我, 现在, 受不了, 了], given input 我现在受不了了]"""
     prompt = f"""Reply with NOTHING except the segmentation for the following text: "{text}", formatted as a python list (e.g.,  ['我', '今天', '去', '吃饭', '了']). If there are multiple options, take your best guess based on context. If the input is in traditional, your output will be in traditional too."""
@@ -119,9 +128,16 @@ def chatgpt_get_classifiers(text, context_messages):
 
 def chatgpt_make_trad_from_simplified(simplified_text):
     # purposely don't include context_messages here, because this isn't a relevant part of the conversation
-    trad_prompt = """Your job is now to convert the provided simplified Chinese text into traditional Chinese. Respond with only the converted text."""
+    trad_prompt = """Your job is now to convert the provided simplified Chinese text into traditional Chinese. Respond with only the converted text (don't add English, simplified Chinese, or pinyin)"""
     temp_messages = [{"role":"system", "content":trad_prompt}, {"role":"user", "content":f"The text is {simplified_text}."}]
     return utils.get_chatgpt_response(temp_messages, temperature=0)
+
+def chatgpt_translate(english_simplified_or_traditional_text, context_messages=[]):
+    # purposely don't include context_messages here, because this isn't a relevant part of the conversation
+    trans_prompt = """Your job is to translate the provided text (which may be English, traditional Chinese, or simplified Chinese) into simplified Chinese. Respond with only the translated text. Return the text unchanged if it is provided as simplified Chinese."""
+    temp_messages = [{"role":"system", "content":trans_prompt}, {"role":"user", "content":f"The text is {english_simplified_or_traditional_text}."}]
+    context_messages.extend(temp_messages)
+    return utils.get_chatgpt_response(context_messages, temperature=0)
 
 def chatgpt_make_pinyin_from_simplified(simplified_text):
     # purposely don't include context_messages here, because this isn't a relevant part of the conversation
@@ -234,13 +250,22 @@ word = "人山人海"
 #print(utils.get_chatgpt_response([{"role":"system", "content":phrase_system_prompt}, {"role":"user", "content":f"The text is {word}"}], temperature=0))
 
 text = "这是一个中文句子but this is english再是中文"
-print(remove_non_chinese_from_string(text))
+#print(remove_non_chinese_from_string(text))
 
 text =  "this is english  english again" 
-print(split_text(text))
+#print(split_text(text))
 
 text = "máo)"
-print(is_pinyin_tone_marked(text))
+#print(is_pinyin_tone_marked(text))
 
 text = "This is a test: 中文 nǐ hǎo, wǒ shì māo more english"
-print(remove_pinyin_tone_marked_ish(text)) # eats everything but punctuation
+#print(remove_pinyin_tone_marked_ish(text)) # eats everything but punctuation
+
+text = "我现在受不了了. 你昨天晚上告诉我一言为定，但是你现在还没来. 你最好马上就来."
+print(jieba_segmentize(text))
+
+
+
+data = [('做', [('亻', 'ren2', 'No Regularity with zuo4'), ('故', 'gu4', 'No Regularity with zuo4'), ('亻', 'ren2', 'No Regularity with zuo4'), ('十', 'shi2', 'No Regularity with zuo4'), ('口', 'kou3', 'No Regularity with zuo4'), ('⺙', None, None)]), ('米', [('木', 'Mu4', 'Alliterates (similar initials) with mi3'), ('木', 'mu4', 'Alliterates (similar initials) with mi3'), ('丷', 'ba1', 'No Regularity with mi3'), ('丷', 'xx5', 'No Regularity with mi3'), ('米', 'Mi3', 'Exact Match (with tone) with mi3'), ('米', 'mi3', 'Exact Match (with tone) with mi3')]), ('飯', [('飠', 'shi2', 'No Regularity with fan4'), ('反', 'fan3', 'Syllable Match (without tone) with fan4'), ('人', 'ren2', 'No Regularity with fan4'), ('丨', 'gun3', 'No Regularity with fan4'), ('丨', 'shu4', 'No Regularity with fan4'), ('彐', 'ji4', 'No Regularity with fan4'), ('乚', 'ya4', 'No Regularity with fan4'), ('丶', 'zhu3', 'No Regularity with fan4'), ('丶', 'zhu3', 'No Regularity with fan4'), ('⺁', None, None), ('又', 'you4', 'No Regularity with fan4')])]
+
+
