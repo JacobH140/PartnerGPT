@@ -1,6 +1,8 @@
 import openai
 from apikey import api_key
 import os
+import ast
+import time
 
 def get_initial_message(vocab_word, aux_words):
     messages=[
@@ -10,15 +12,73 @@ def get_initial_message(vocab_word, aux_words):
         ]
     return messages
 
-def get_chatgpt_response(messages, temperature, model="gpt-3.5-turbo"):
-    print("model: ", model)
-    response = openai.ChatCompletion.create(
-    model=model,
-    messages=messages,
-    stream=False,
-    temperature=temperature,
-    )
+def get_chatgpt_response(messages, temperature, model="gpt-3.5-turbo", verbose=True, max_tries = 10):
+    #print("model: ", model)
+    sleep_seconds = 2
+    try:
+        if messages[-2]['role'] == 'system' and verbose:
+            print("system: ", messages[-2]['content'])
+    except IndexError:
+        pass
+    if verbose:
+        print("user: ", messages[-1]['content'])
+
+    tries = 0
+    success = False
+    while success == False:
+        try:
+
+            response = openai.ChatCompletion.create(
+            model=model,
+            messages=messages,
+            stream=False,
+            temperature=temperature,
+            )
+            if verbose:
+                print("response: ", response['choices'][0]['message']['content'])
+            success = True
+
+        except openai.error.RateLimitError as r:
+            if tries > max_tries:
+                print("tried sleeping for up to ", sleep_seconds, "seconds, but still got rate limit error. Giving up")
+                raise r
+            else:
+                tries += 1
+                print("Encountered Rate Limit error: \n----\n", r, "\n----\n", "...will sleep for", sleep_seconds, "seconds")
+                sleep_seconds *= 2
+                time.sleep(sleep_seconds)
+        
+    
+    time.sleep(2) # to avoid overloading with requests
     return response['choices'][0]['message']['content']
+
+def get_chatgpt_response_enforce_python_formatting(messages, response_on_fail, formatting_restriction="valid Python", extra_prompt=None, start_temperature=0, end_temperature=1, step=0.1, model="gpt-3.5-turbo"):
+    # returns whatever response_on_fail is if chatgpt is not working
+    # extra_prompt gives a chance for the user to remind the bot how the output formatting should be organized
+    # formatting_restriction is either "valid Python" or a user-provided bool-returning function
+    temperature = start_temperature
+    success = False
+    while not success:
+        try:
+            response = get_chatgpt_response(messages, temperature=temperature, model=model)
+            #print("User: <placeholder>")
+            #print("Response: ", response)
+            if formatting_restriction == "valid Python":
+                ast.literal_eval(response) # just testing to see if formatting works
+            else:
+                assert formatting_restriction(response) == True
+            success = True
+        except Exception as e:
+            print("Encountered exception; response was:", response)
+            print("EXCEPTION:", e)
+            print("Trying again, cGPT gave incorrectly formatted output")
+            temperature += step
+            if extra_prompt:
+                messages.append({"role": "user", "content": extra_prompt})
+            if temperature > end_temperature:
+                print("cGPT is not working, giving up")
+                return str(response_on_fail)
+    return response
 
 def get_chatgpt_response_stream_chunk(messages, model="gpt-3.5-turbo"):
     response = openai.ChatCompletion.create(

@@ -13,15 +13,19 @@ import utils
 import re
 import ast
 import jieba
+import logging
 from unidecode import unidecode
 
 def chinese_stopwords():
-    return ["、","。","〈","〉","《","》","一","一个"]
+    return ["、","。","〈","〉","《","》","一","一个", ".", ",", "!", ";", ":"] 
 
 def chatgpt_get_pinyin(word):
     """e.g., returns ['shou4', 'bu4', 'liao3'], given input 受不了了]"""
     prompt = f"""Reply with NOTHING except the pinyin for the following word: {word}, formatted as a python list (e.g.,  ["shou4", "bu4", "liao3", "le5"]). If there are multiple options, take your best guess based on context."""
-    return ast.literal_eval(utils.get_chatgpt_response([{f"role":"user", "content":prompt}], temperature=0))
+    #print("user: ", prompt)
+    response = utils.get_chatgpt_response([{f"role":"user", "content":prompt}], temperature=0)
+    #print("response: ", response)
+    return ast.literal_eval(response)
 
 def jieba_segmentize(text, remove_stopwords=True):
     res = jieba.lcut_for_search(text)
@@ -32,9 +36,12 @@ def jieba_segmentize(text, remove_stopwords=True):
 def chatgpt_word_segmentize(text):
     """e.g., ideally returns [我, 现在, 受不了, 了], given input 我现在受不了了]"""
     prompt = f"""Reply with NOTHING except the segmentation for the following text: "{text}", formatted as a python list (e.g.,  ['我', '今天', '去', '吃饭', '了']). If there are multiple options, take your best guess based on context. If the input is in traditional, your output will be in traditional too."""
+    #print("user: ", prompt)
     while True:
         try:
-            return ast.literal_eval(utils.get_chatgpt_response([{f"role":"user", "content":prompt}], temperature=0))
+            response = utils.get_chatgpt_response([{f"role":"user", "content":prompt}], temperature=0)
+            #print("response: ", response)
+            return ast.literal_eval(response)
         except Exception as e:
             print(e)
             print("Trying again, cGPT gave incorrectly formatted output")
@@ -84,7 +91,17 @@ def word_decomposition_info(word):
     for character, pinyin in zip(word, chatgpt_predicted_pinyin): 
         try: 
             #print("pinyin:", pinyin, ", character:", character)
+            print(character)
+            print(type(character))
+            print(pinyin)
+            print(type(pinyin))
+            if phonetic_regularities[character] is None:
+                continue # i think there's a bug in hanzipy?
+            print(phonetic_regularities[character])
             phonetic_regularities[character][pinyin]
+            #import pdb; pdb.set_trace()
+
+
             k = pinyin # looks weird, basically the above tells us if pinyin is a valid key and we only proceed here if so
             print("chatgpt worked")
         except KeyError:
@@ -117,18 +134,28 @@ def text_decomposition_info(text):
 def chatgpt_get_classifiers(text, context_messages):
     mw_finder_prompt = """Your job is now to list the measure word(s) that are associated with the following word(s). Respond with only a Python list, where each entry is a relevant measure word without pinyin."""
     context_messages.extend([{"role":"system", "content":mw_finder_prompt}, {"role":"user", "content":f"The text is {text}. Remember to format your answer as a Python list of chars."}])
-    while True:
-        try:
-            mw_response = utils.get_chatgpt_response(context_messages, temperature=0)
-            context_messages = utils.update_chat(context_messages, "assistant", mw_response)
-            return ast.literal_eval(mw_response), context_messages
-        except Exception as e:
-            print("EXCEPTION", e)
-            print("Trying again, cGPT gave incorrectly formatted output")
+    mw_response = utils.get_chatgpt_response_enforce_python_formatting(context_messages, response_on_fail="No measure word", extra_prompt = "Try again— make sure to format your response as a Python list of chars, and only a python list of chars." , start_temperature=0)
+    context_messages = utils.update_chat(context_messages, "assistant", mw_response)
+    return ast.literal_eval(mw_response), context_messages
+    #while True:
+    #    try:
+    #        #print("user: ", context_messages[-1]["content"])
+    #        mw_response = utils.get_chatgpt_response(context_messages, temperature=0)
+    #        context_messages = utils.update_chat(context_messages, "assistant", mw_response)
+    #        return ast.literal_eval(mw_response), context_messages
+    #    except Exception as e:
+    #        print("EXCEPTION", e)
+    #        print("Trying again, cGPT gave incorrectly formatted output")
+
+def chatgpt_batch_make_trad_from_simplified(simplified_text_list):
+    # purposely don't include context_messages here, because this isn't a relevant part of the conversation
+    trad_prompt = """Convert each string given into traditional Chinese (no English, simplified Chinese, or pinyin allowed). Provide your output as similarly formatted Python list (no markdown). If an entry is not simplified chinese, just copy it for the corresponding output entry (e.g., if it says 'No Measure Word' then corresponding output is 'No Measure Word')."""
+    temp_messages = [{"role":"system", "content":trad_prompt}, {"role":"user", "content":f"The text is {str(simplified_text_list)}."}]
+    return utils.get_chatgpt_response_enforce_python_formatting(temp_messages, extra_prompt="Try again, making sure to format your output as if it were a Python list (but no backticks or anything), and say NOTHING else.", response_on_fail=str(["None"]*len(simplified_text_list)), start_temperature=0)
 
 def chatgpt_make_trad_from_simplified(simplified_text):
     # purposely don't include context_messages here, because this isn't a relevant part of the conversation
-    trad_prompt = """Your job is now to convert the provided simplified Chinese text into traditional Chinese. Respond with only the converted text (don't add English, simplified Chinese, or pinyin)"""
+    trad_prompt = """Your job is now to convert the provided simplified Chinese text into traditional Chinese. Respond with only the converted text (no English, simplified Chinese, or pinyin allowed). Say "None" if insufficient input is provided."""
     temp_messages = [{"role":"system", "content":trad_prompt}, {"role":"user", "content":f"The text is {simplified_text}."}]
     return utils.get_chatgpt_response(temp_messages, temperature=0)
 
@@ -138,6 +165,12 @@ def chatgpt_translate(english_simplified_or_traditional_text, context_messages=[
     temp_messages = [{"role":"system", "content":trans_prompt}, {"role":"user", "content":f"The text is {english_simplified_or_traditional_text}."}]
     context_messages.extend(temp_messages)
     return utils.get_chatgpt_response(context_messages, temperature=0)
+
+def chatgpt_batch_make_pinyin_from_simplified(simplified_text_list):
+    # purposely don't include context_messages here, because this isn't a relevant part of the conversation
+    trad_prompt = """Convert each string given into pinyin, and provide your output as a corresponding Python list (no markdown). If a given input entry is insuffient, say "No Pinyin" as the corresponding output entry."""
+    temp_messages = [{"role":"system", "content":trad_prompt}, {"role":"user", "content":f"The text is {str(simplified_text_list)}."}]
+    return utils.get_chatgpt_response_enforce_python_formatting(temp_messages, extra_prompt="Try again, making sure to format your output as if it were a Python list, and say NOTHING else.", response_on_fail=str(["None"]*len(simplified_text_list)), start_temperature=0)
 
 def chatgpt_make_pinyin_from_simplified(simplified_text):
     # purposely don't include context_messages here, because this isn't a relevant part of the conversation
@@ -174,6 +207,7 @@ def remove_pinyin_tone_marked_ish(text):
 
     
 if __name__ == '__main__':
+    logging.basicConfig(level=logging.WARNING)
     simplified = "我现在受不了了"
     traditional = "愛情"
 
@@ -262,7 +296,7 @@ text = "This is a test: 中文 nǐ hǎo, wǒ shì māo more english"
 #print(remove_pinyin_tone_marked_ish(text)) # eats everything but punctuation
 
 text = "我现在受不了了. 你昨天晚上告诉我一言为定，但是你现在还没来. 你最好马上就来."
-print(jieba_segmentize(text))
+#print(jieba_segmentize(text))
 
 
 

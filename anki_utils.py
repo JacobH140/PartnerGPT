@@ -108,3 +108,20 @@ def permute_and_add(filtered_df, deck_name, model_name, fields_to_ignore=None, f
             tags = filtered_df["tag"][row_index]
             if other_fields_dict[front_field]:
                 add_note(other_fields_dict, deck_name, model_name, audio_dict, tags)
+
+if __name__ == '__main__':
+    def format_to_plaintext(data):
+        plaintext_list = ""
+        for character, components in data:
+            plaintext_list += f'{character}\\n'
+            for component, meaning in components:
+                plaintext_list += f' - {component}: {meaning}\\n'
+        return plaintext_list
+
+    data = [('做', [('亻', 'human'), ('十', 'ten'), ('口', 'mouth'), ('⺙', 'knock')]), 
+            ('米', [('米', 'rice')]), 
+            ('饭', [('饣', 'eat/food'), ('⺁', 'cliff'), ('又', 'right hand')])]
+
+    anki_plaintext_list = format_to_plaintext(data)
+    print(anki_plaintext_list)
+    

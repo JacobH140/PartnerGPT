@@ -5,14 +5,43 @@ import gsheet_utils as gs
 import jieba
 import pandas as pd
 import re
+import time
+from datetime import datetime
 
-def make_cards_from_translation_gsheet():
-    df, wks = gs.access_gsheet_by_url(url="https://docs.google.com/spreadsheets/d/1MfIh7x2sIwnLYFUpunpTb_x77woirfPOSGEQhqJ0Qto/edit?usp=sharing", sheet_name='Texts')
+def make_cards_from_translation_gsheet(persistent=False):
+    url = 'https://docs.google.com/spreadsheets/d/1MfIh7x2sIwnLYFUpunpTb_x77woirfPOSGEQhqJ0Qto/edit?usp=sharing'
+    df, wks = gs.access_gsheet_by_url(url=url, sheet_name='To Create')
     if not df.empty:
         gs.log_df(df, 'learning-data/gsheet_df.csv')
-        for row in df.itertuples():
-          mkc.make_anki_notes_from_text(text=row[1], source=row[2], context_messages=row[3]) # Text (in either language, simpl or trad), Source, context_messages data, respectively
-        gs.clear_sheet(wks, keep_headers=True)
+        for i, row in df.iterrows():
+          entry = list(row)
+          num_tries = 0
+          success = False
+          seconds_to_sleep = 10
+          while not success:
+            if not row[0]: # disregard any empty text entries
+                wks.delete_rows(2, 2)
+                continue
+            try:
+                #mkc.make_anki_notes_from_text(text=row[0], source=row[1], context_messages=row[2]) # Text (in either language, simpl or trad), Source, context_messages data, respectively
+                success = True
+                entry[3] = datetime.now().strftime("%Y-%m-%d %H:%M:%S") # log with the current time
+                _, log_wks = gs.access_gsheet_by_url(url=url, sheet_name='Created')
+                log_wks.append_row(entry)
+                wks.delete_rows(2, 2) # delete the first non-header spreadsheet row, this should be the one we just processed
+                print(f"Created note for text {row[0]}, assuming one does not already exist.")
+            except Exception as e:
+                if not persistent:
+                    raise Exception(f"Error on gsheet:\n---\n {e} \n---\n Text was '{row[0]}'. Only tried once, set persistent=True to have me re-try up to 5 times.")
+                else:
+                    print(f'Error on row of gsheet:\n---\n {e} \n---\n, text was {row[0]}. Sleeping for {seconds_to_sleep} seconds then trying again.')
+                    num_tries += 1
+                    time.sleep(seconds_to_sleep)
+                    seconds_to_sleep *= 2
+                    if num_tries > 5:
+                        raise Exception(f'Error on row of gsheet, tried and failed {num_tries} times:\n---\n {e} \n---\n, text was {row[0]}. Slept for up to {seconds_to_sleep} seconds each time.')
+        
+        #gs.clear_sheet(wks, keep_headers=True)
         print(df)
 
         # upload any terms which are unknown to the unknown sheet
