@@ -78,12 +78,16 @@ def remove_spaces_punctuation(input_string):
     return input_string_no_space_punc
 
 class SessionNonUIState:
-    def __init__(self):
+    def __init__(self, name):
+        self.query = None
+        self.queried = None
+
+        self.name = name
         self.custom = defaultdict(lambda: None) # an instance can have some 'custom' attributes that other instances don't
 
         self.audio_playing = False
 
-        simpl_or_trad = None
+        self.simpl_or_trad = None # need to decide if this is a page-wide setting or not..
 
         self.next = None # this is a FUNCTION to update the state when next button is clicked... e.g., update the queue of new cards. Not always relevant (e.g., not relevant for translate)
         self.next_func_args = (None,)
@@ -294,12 +298,12 @@ def on_proceed_button_click(nonUI_state):
         clear_text()
     
     if 'query' in st.session_state and not nonUI_state.administer_rating_form: # first part ensures this doesn't run when 'begin' is pressed, second part ensures 'next' behavior doesn't run while the rating form is being administered
-        st.session_state.queried = '**next !**'
+        st.session_state.queried = f'{nonUI_state.name} — **next !**'
         nonUI_state.messages = nonUI_state.generate_bot_response_placeholder(query=st.session_state.queried)
         clear_text()
     elif not nonUI_state.administer_rating_form:
         print(nonUI_state.messages)
-        nonUI_state.messages = nonUI_state.generate_bot_response_placeholder(query='**begin !**')
+        nonUI_state.messages = nonUI_state.generate_bot_response_placeholder(query=f'{nonUI_state.name} — **begin !**')
         #st.markdown("<details> <summary>Details</summary> Something small enough to escape casual notice. </details>", unsafe_allow_html=True)
     
     nonUI_state.chatting_has_begun = True

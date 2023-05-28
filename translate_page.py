@@ -44,7 +44,7 @@ st.set_page_config(
 
 
 if 'translate_state' not in st.session_state:
-    st.session_state.translate_state = chat_template.SessionNonUIState()
+    st.session_state.translate_state = chat_template.SessionNonUIState(name="translate")
     
 if not st.session_state.translate_state.chatting_has_begun:
     model = st.selectbox("Select a model", ("gpt-3.5-turbo", "gpt-4"))

@@ -90,8 +90,11 @@ def next(learn_state):
     update_databases(learn_state)
 
 
+
 if 'learn_state' not in st.session_state:
-    st.session_state.learn_state = chat_template.SessionNonUIState()
+    st.session_state.learn_state = chat_template.SessionNonUIState(name="learn")
+
+st.title("Learn")
 
 
 st.session_state.next_func_args = (st.session_state.learn_state,)
@@ -105,12 +108,8 @@ if 'cards_new' not in st.session_state.learn_state.custom:
     print("updating databases")
     update_databases(st.session_state.learn_state)
 
-else:
-    st.title("Learn")
-    if not st.session_state.learn_state.custom['cards_new']:
-        st.exception("There are no new words to learn right now! Head over to review to review some words, or converse to put things into practice...")
-    
-
+if not st.session_state.learn_state.custom['cards_new']:
+    st.warning("There are no new words to learn right now! Head over to review to review some words, or converse to put things into practice...")
 
 
 
