@@ -1,5 +1,4 @@
 from collections import defaultdict
-from tqdm import tqdm
 import json
 import urllib.request
 import requests
@@ -7,7 +6,6 @@ import os
 from urllib.parse import urlencode
 from urllib.parse import quote
 from urllib.request import urlopen
-from bs4 import BeautifulSoup
 
 
 def request(action, **params):
@@ -63,6 +61,17 @@ def get_due_ids(deck_name, limit=None):
         return ids[:limit]
     return ids
 
+def get_new_ids(deck_name, limit=None):
+    ids = invoke('findCards', query=f"deck:{deck_name} is:new")
+    if limit is not None:
+        return ids[:limit]
+    return ids
+
+def get_review_ids(deck_name, limit=None):
+    ids = invoke('findCards', query=f"deck:{deck_name} is:review")
+    if limit is not None:
+        return ids[:limit]
+    return ids
 
 
 def get_note_and_card_info(card_ids):
@@ -77,6 +86,22 @@ def get_note_and_card_info(card_ids):
 
     return note_info, card_info
 
+def get_field_data_with_status(deck_name, status, field_name, limit=None):
+    if status == "due":
+        card_ids = get_due_ids(deck_name=deck_name, limit=limit)
+    elif status == "new":
+        card_ids = get_new_ids(deck_name=deck_name, limit=limit)
+    elif status == "review":
+        card_ids = get_review_ids(deck_name=deck_name, limit=limit)
+    else:
+        raise ValueError("status must be 'due', 'new', or 'review'")
+    note_info, _ = get_note_and_card_info(card_ids)
+
+    voc_words = [note_info[key]['fields'][field_name]['value'] for key in note_info.keys()] 
+
+    return voc_words
+
+
 def gui_answer_current_card(ease):
     invoke("guiAnswerCard", ease=ease)
 
@@ -90,7 +115,7 @@ def permute_and_add(filtered_df, deck_name, model_name, fields_to_ignore=None, f
     (and back is all the others). Unfortunately only works for this specific use case due to time crunch with class starting soon"""
     if fields_to_ignore is None:
         fields_to_ignore = []
-    for row_index, row in tqdm(filtered_df.iterrows()):
+    for row_index, row in filtered_df.iterrows():
         for col_index, col in filtered_df.iteritems():
             if col_index in fields_to_ignore:
                 continue
