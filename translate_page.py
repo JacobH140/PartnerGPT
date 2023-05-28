@@ -14,6 +14,7 @@ import stt
 import string
 from playsound import playsound
 import base64
+import logging
 
 
 
@@ -44,7 +45,7 @@ st.set_page_config(
 
 
 if 'translate_state' not in st.session_state:
-    st.session_state.translate_state = chat_template.SessionNonUIState(name="translate")
+    st.session_state.translate_state = chat_template.SessionNonUIState(name="translate_state")
     
 if not st.session_state.translate_state.chatting_has_begun:
     model = st.selectbox("Select a model", ("gpt-3.5-turbo", "gpt-4"))
@@ -66,3 +67,9 @@ chat_template.chat(st.session_state.translate_state)
 if st.session_state.translate_state.on_automatic_rerun:
     st.session_state.translate_state.on_automatic_rerun = False
 
+logging.getLogger("urllib3").setLevel(logging.WARNING)
+logging.getLogger("openai").setLevel(logging.WARNING)
+logging.getLogger("hanzipy").setLevel(logging.WARNING)
+logging.getLogger("google.auth.transport.requests").setLevel(logging.WARNING)
+logging.getLogger("fsevents").setLevel(logging.WARNING)
+logging.getLogger("root").setLevel(logging.WARNING)

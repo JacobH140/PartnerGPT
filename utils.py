@@ -66,6 +66,7 @@ def get_chatgpt_response_enforce_python_formatting(messages, response_on_fail, f
     # formatting_restriction is either "valid Python" or a user-provided bool-returning function
     temperature = start_temperature
     success = False
+    response = "none yet"
     while not success:
         try:
             response = get_chatgpt_response(messages, temperature=temperature, model=model)

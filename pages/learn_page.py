@@ -15,6 +15,7 @@ import string
 from playsound import playsound
 import base64
 import gsheet_utils as gs
+import logging
 
 # READ: ----------------------------------------------------------------
 
@@ -65,14 +66,22 @@ import chat_template
 #    return voc_words
 
 def learn_get_initial_message(learn_state):
-    aux_words = ["小狗", '女朋友', '是吗'] # temp for now
-    vocab_word = learn_state.custom['cards_new'].pop()[learn_state.simpl_or_trad]
+    # temp aux words
+    aux_words_sim = [{"简体字simplified": "小狗", "繁体字traditional": "小狗", "id": "1"}, {"简体字simplified": "小猫", "繁体字traditional": "小貓", "id": "2"}]
+    #
+    print("reviewing: ", learn_state.custom['cards_new'])
+    card_new = learn_state.custom['cards_new'][-1]
+    vocab_word = card_new[learn_state.simpl_or_trad]
+    aux_words = [aw[learn_state.simpl_or_trad] for aw in aux_words_sim]
 
 
     initial_system = f"""You are a Chinese language professor tutoring me, an English speaking student, in learning Chinese. Give a mini-lesson introducing the word {vocab_word}. Be concise, as there are many words to get through after. Quiz me as you go in order to move the lesson forward. When I make mistakes, you should correct and remember those mistakes. When I ask questions, you should answer in mostly English and remember those questions. Only include pinyin for new words."""
     initial_user = f"Guide me through the word {vocab_word}. During the lesson (e.g., when providing example sentences using {vocab_word}), incorporate usage of {aux_words[:]}. You should provide an example sentence before asking me to provide one. Use {st.session_state.learn_state.simpl_or_trad} Chinese characters."
 
-    learn_state.to_review = [vocab_word] + aux_words
+    print("vocab_word in LGIM func: ", vocab_word)
+    learn_state.to_answer = {"text":[vocab_word] + aux_words, "ids": [card_new["id"]] + [aw["id"] for aw in aux_words_sim]}
+    print("learn_state.to_answer in LGIM func: ", learn_state.to_answer)
+
     messages=[
             {"role": "system", "content": initial_system},
             {"role": "user", "content": initial_user},
@@ -80,24 +89,28 @@ def learn_get_initial_message(learn_state):
     return messages
 
 def update_databases(learn_state):
+    print("retrieving new cards and reviewed cards cache from gsheet")
     from_gsheet_new_cards, wks_new_cards = gs.access_gsheet_by_url_no_df(sheet_name="New")
     from_gsheet_reviewed_cache, wks_reviewed_cache_cards = gs.access_gsheet_by_url_no_df(sheet_name="Reviewed Cards Cache")
     excluded = {entry["id"] for entry in from_gsheet_reviewed_cache}
+    print("excluded: ", excluded)
     learn_state.custom['cards_new'] = [entry for entry in from_gsheet_new_cards if entry["id"] not in excluded] # essentially a set minus
+    print("will review: ", learn_state.custom['cards_new'])
 
 
 def next(learn_state):
+    print("type: ", type(learn_state))
     update_databases(learn_state)
 
 
 
 if 'learn_state' not in st.session_state:
-    st.session_state.learn_state = chat_template.SessionNonUIState(name="learn")
+    st.session_state.learn_state = chat_template.SessionNonUIState(name="learn_state")
 
-st.title("Learn")
+#st.title("Learn")
 
-
-st.session_state.next_func_args = (st.session_state.learn_state,)
+st.session_state.learn_state.next = next
+st.session_state.learn_state.next_func_args = (st.session_state.learn_state,)
     
 if not st.session_state.learn_state.chatting_has_begun:
     model = st.selectbox("Select a model", ("gpt-3.5-turbo", "gpt-4"))
@@ -105,15 +118,18 @@ if not st.session_state.learn_state.chatting_has_begun:
     st.session_state.learn_state.model = model
 
 if 'cards_new' not in st.session_state.learn_state.custom:
-    print("updating databases")
+    print("Getting databases (should only see this print once)")
     update_databases(st.session_state.learn_state)
 
 if not st.session_state.learn_state.custom['cards_new']:
-    st.warning("There are no new words to learn right now! Head over to review to review some words, or converse to put things into practice...")
+    st.session_state.learn_state.begin_disabled = True
+    st.warning("There are no new words to learn right now! Head over to **Review** to review some words, or **Converse** to put things into practice...")
+else:
+    st.session_state.learn_state.begin_disabled = False
 
 
 
-st.session_state.learn_state.to_create_prompt = "Repeat back: ['this', 'is', 'create', 'prompt']"
+st.session_state.learn_state.to_create_prompt = "Repeat back: ['this', 'is', 'create', 'prompt']. Make sure your answer is a python list."
 st.session_state.learn_state.initial_message_func = learn_get_initial_message
 st.session_state.learn_state.initial_message_func_args = (st.session_state.learn_state,)
 
@@ -121,4 +137,12 @@ chat_template.chat(st.session_state.learn_state)
 
 if st.session_state.learn_state.on_automatic_rerun:
     st.session_state.learn_state.on_automatic_rerun = False
+
+
+logging.getLogger("urllib3").setLevel(logging.WARNING)
+logging.getLogger("openai").setLevel(logging.WARNING)
+logging.getLogger("hanzipy").setLevel(logging.WARNING)
+logging.getLogger("google.auth.transport.requests").setLevel(logging.WARNING)
+logging.getLogger("fsevents").setLevel(logging.WARNING)
+logging.getLogger("root").setLevel(logging.WARNING)
 

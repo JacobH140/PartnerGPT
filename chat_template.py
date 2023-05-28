@@ -79,9 +79,6 @@ def remove_spaces_punctuation(input_string):
 
 class SessionNonUIState:
     def __init__(self, name):
-        self.query = None
-        self.queried = None
-
         self.name = name
         self.custom = defaultdict(lambda: None) # an instance can have some 'custom' attributes that other instances don't
 
@@ -91,9 +88,12 @@ class SessionNonUIState:
 
         self.next = None # this is a FUNCTION to update the state when next button is clicked... e.g., update the queue of new cards. Not always relevant (e.g., not relevant for translate)
         self.next_func_args = (None,)
+
+        self.begin_disabled = False
         
-        self.to_review = []
+        self.to_answer = []
         self.to_create_prompt = None
+        self.to_create_candidates = None
 
         self.initial_message_func = None
         self.initial_message_func_args = ("not set",)
@@ -110,13 +110,15 @@ class SessionNonUIState:
         self.administer_rating_form = False
         self.form_submit_button_clicked = False
         self.on_automatic_rerun = False # this is specific to the form thing... don't try to use it for anything else
+        
+        self.flag_generated_response_this_run = False # the response generation process updates UI in a streaming manner... but if it never gets called, we want to update UI manually
 
-    def user_text_input_widget(self, tr, session_state_object, value=None):
+    def user_text_input_widget(self, tr, session_state_object, nonUI_state, value=None):
         if value is None:
-            value = session_state_object['query'] 
+            value = session_state_object[f"{nonUI_state.name}_query"]
             #tr.text_input("You: ", value=session_state_object['query'], key="query", placeholder='speak or type', label_visibility="collapsed", on_change=clear_text, disabled=self.administer_rating_form)
         #else:
-        tr.text_input("You: ", key="query", value="Resume conversation...", placeholder='speak or type', label_visibility="collapsed", on_change=clear_text, disabled=self.administer_rating_form)
+        tr.text_input("You: ", key=f"{nonUI_state.name}_query", placeholder='begin or resume conversation', label_visibility="collapsed", on_change=clear_text, args=(nonUI_state,), disabled=self.administer_rating_form)
 
 
     def stream_response(self, messages, real_time_audio=False):
@@ -173,6 +175,7 @@ class SessionNonUIState:
         messages = update_chat(messages, "assistant", response)
         self.generated.append(response)
         self.reviewed.append("")
+        self.flag_generated_response_this_run = True
 
 
         return messages
@@ -203,14 +206,18 @@ def get_initial_message_placeholder():
 
     
  
-def update_UI_messages(state_object):
+def update_UI_messages(state_object, mode="stream"):
     for i in range(len(state_object.past)): 
         if state_object.past[i]:
             st.info(state_object.past[i])
-        if i < len(state_object.generated) and state_object.generated[i]:
+        if mode=="stream" and i < len(state_object.generated) and state_object.generated[i]:
             st.success(state_object.generated[i])
-        if i < len(state_object.generated) and state_object.reviewed[i]:
+        #elif state_object.generated[i]:
+        #    st.success(state_object.generated[i])
+        if mode=="stream" and i < len(state_object.generated) and state_object.reviewed[i]:
             st.warning(state_object.reviewed[i])
+        #elif state_object.reviewed[i]:
+        #    st.warning(state_object.reviewed[i])
 
 
 
@@ -231,46 +238,51 @@ def expander_messages_widget(state_object):
         st.write(state_object.messages)
         
 
-def rating_form(nonUI_state, to_review=[], to_create_prompt=None): 
+def rating_form(nonUI_state, to_answer=[], to_create_prompt=None): 
     def on_submit():
         nonUI_state.administer_rating_form = False
         nonUI_state.form_submit_button_clicked = True
-        st.balloons()
+        st.snow()
 
-    if to_create_prompt is not None:
+    if to_create_prompt is not None and nonUI_state.administer_rating_form:
         nonUI_state.messages.append({"role":"user", "content":f"""{to_create_prompt}"""})
         response = get_chatgpt_response_enforce_python_formatting(nonUI_state.messages, response_on_fail = "[]", extra_prompt="Make sure to give your response as a (possibly empty) LIST OF STRINGS, and nothing but a list of strings.", start_temperature=0.5, model=nonUI_state.model)
-        to_create = ast.literal_eval(response)
-    else:
-        to_create = []
+        update_chat(nonUI_state.messages, "assistant", response)
+        nonUI_state.to_create_candidates = ast.literal_eval(response)
+
 
     with st.form('Rating Form', clear_on_submit=False):
         ratings = defaultdict(lambda: None)
-        review_rows = []
-        for word in to_review:
+        answer_rows = []
+        for word, id in zip(to_answer["text"], to_answer["ids"]):
             r = st.radio(f"**Review**: {word}", ("Not Reviewed", "Again", "Hard", "Good", "Easy"), horizontal=True)
+            print("WORD:", word)
             ratings[word] = r
-            review_rows.append([word, r])
+            answer_rows.append([word, r, id])
         
 
         create_rows = []
-        for word in to_create:
+        for word in nonUI_state.to_create_candidates:
             r = st.radio(f"**Create**: {word}?", ("Yes", "No"), horizontal=True)
             ratings[word] = r
             create_rows.append([word, r])
+
+        if nonUI_state.form_submit_button_clicked:
+            nonUI_state.to_create_candidates = []
+            nonUI_state.to_answer["text"] = []; nonUI_state.to_answer["ids"] = []
         
 
 
-        return st.form_submit_button('Submit', on_click=on_submit), ratings, review_rows, create_rows
+        return st.form_submit_button('Submit', on_click=on_submit), ratings, answer_rows, create_rows
 
 def ratings_widget(state_object):
     with st.sidebar.expander("Show Review Ratings"):
         st.write(state_object.submitted_ratings)
 
 
-def clear_text(): # should this have st.session_state as an argument?
-    st.session_state["queried"] = st.session_state["query"]
-    st.session_state["query"] = ""
+def clear_text(nonUI_state): # should this have st.session_state as an argument?
+    st.session_state[f"{nonUI_state.name}_queried"] = st.session_state[f"{nonUI_state.name}_query"]
+    st.session_state[f"{nonUI_state.name}_query"] = ""
 
 def UI_controls(nonUI_state): 
     st.divider()
@@ -281,26 +293,28 @@ def UI_controls(nonUI_state):
         #    st.session_state['stt_session'] = 0 # init
         #stt_button = stt.mic_button()
     with user:
-        if 'query' not in st.session_state:
-            st.session_state['query'] = ''
+        if f"{nonUI_state.name}_query" not in st.session_state:
+            st.session_state[f"{nonUI_state.name}_query"] = ''
         tr = st.empty()
-        nonUI_state.user_text_input_widget(tr, st.session_state)
+        nonUI_state.user_text_input_widget(tr, st.session_state, nonUI_state)
         #stt.mic_button_monitor(tr, nonUI_state, stt_button, st.session_state) 
         
     with next_button:
         st.button("Next", key="next_button", on_click=on_proceed_button_click, args=(nonUI_state,), disabled=nonUI_state.administer_rating_form)
 
 def on_proceed_button_click(nonUI_state):
+    print("on_proceed_button_click is running")
     #nonUI_state.messages = nonUI_state.initial_message_func(nonUI_state.vocab_words_testing_temp.pop(), nonUI_state.aux_words_testing_temp)
     nonUI_state.messages = nonUI_state.initial_message_func(*nonUI_state.initial_message_func_args)
+    print(nonUI_state.messages)
     if nonUI_state.chatting_has_begun:
         nonUI_state.administer_rating_form = True
-        clear_text()
+        clear_text(nonUI_state)
     
-    if 'query' in st.session_state and not nonUI_state.administer_rating_form: # first part ensures this doesn't run when 'begin' is pressed, second part ensures 'next' behavior doesn't run while the rating form is being administered
-        st.session_state.queried = f'{nonUI_state.name} — **next !**'
-        nonUI_state.messages = nonUI_state.generate_bot_response_placeholder(query=st.session_state.queried)
-        clear_text()
+    if f"{nonUI_state.name}_query" in st.session_state and not nonUI_state.administer_rating_form: # first part ensures this doesn't run when 'begin' is pressed, second part ensures 'next' behavior doesn't run while the rating form is being administered
+        st.session_state[f"{nonUI_state.name}_queried"] = f'{nonUI_state.name} — **next !**'
+        nonUI_state.messages = nonUI_state.generate_bot_response_placeholder(query=st.session_state[f"{nonUI_state.name}_query"])
+        clear_text(nonUI_state)
     elif not nonUI_state.administer_rating_form:
         print(nonUI_state.messages)
         nonUI_state.messages = nonUI_state.generate_bot_response_placeholder(query=f'{nonUI_state.name} — **begin !**')
@@ -310,36 +324,45 @@ def on_proceed_button_click(nonUI_state):
 
 
 def chat(nonUI_state):
-    if "queried" not in st.session_state:
-        st.session_state["queried"] = ""
+    if f"{nonUI_state.name}_queried" not in st.session_state:
+        st.session_state[f"{nonUI_state.name}_queried"] = ""
 
     if 'response_so_far' not in st.session_state:
         st.session_state['response_so_far'] = ""
 
     if 'sonified_so_far' not in st.session_state:
         st.session_state['sonified_so_far'] = ""
-    
+
+     
 
     if not nonUI_state.chatting_has_begun:
-        st.button("Begin", key="begin_button", on_click=on_proceed_button_click, args=(nonUI_state,))
+        st.button("Begin", key="begin_button", on_click=on_proceed_button_click, args=(nonUI_state,), disabled=nonUI_state.begin_disabled)
 
 
-    if 'query' in st.session_state and st.session_state.queried:
-        nonUI_state.messages = nonUI_state.generate_bot_response_placeholder(st.session_state.queried)
+    if f"{nonUI_state.name}_query" in st.session_state and st.session_state[f"{nonUI_state.name}_queried"]:
+        nonUI_state.messages = nonUI_state.generate_bot_response_placeholder(st.session_state[f"{nonUI_state.name}_queried"])
 
     if nonUI_state.generated: 
         if nonUI_state.on_automatic_rerun: # first part ensures this doesn't run when 'begin' is pressed, second part ensures 'next' behavior doesn't run while the rating form is being administered
-            st.session_state.queried = '**next !**'
+            st.session_state[f"{nonUI_state.name}_queried"] = '**next !**'
             nonUI_state.review_notif(f"**Submitted ratings for <num_items> items: <items>**")
-            nonUI_state.messages = nonUI_state.generate_bot_response_placeholder(query=st.session_state.queried)
+            nonUI_state.messages = nonUI_state.generate_bot_response_placeholder(query=st.session_state[f"{nonUI_state.name}_queried"])
     
+    #if nonUI_state.generated and not nonUI_state.flag_generated_response_this_run:
+    #    update_UI_messages(nonUI_state, mode="stream")
+
     if nonUI_state.administer_rating_form or nonUI_state.form_submit_button_clicked: #nonUI_state.on_automatic_rerun:
-        submitted_form, nonUI_state.submitted_rating, review_rows, create_rows = rating_form(nonUI_state, nonUI_state.to_review, nonUI_state.to_create_prompt) # only want to call rating form when administer_rating_form is True, but only care about the results when it's false...?
+        submitted_form, nonUI_state.submitted_rating, answer_rows, create_rows = rating_form(nonUI_state, nonUI_state.to_answer, nonUI_state.to_create_prompt) # only want to call rating form when administer_rating_form is True, but only care about the results when it's false...?
 
 
         if nonUI_state.form_submit_button_clicked and not nonUI_state.on_automatic_rerun: # note that at all times AT MOST one of form_submit_button_clicked, administer_rating_form, and on_automatic_rerun can be True
+            create_rows = [row for row in create_rows if row[1] == "Yes"]
+            create_rows = [[row[0], nonUI_state.name] for row in create_rows]
+            answer_rows = [row for row in answer_rows if row[1] != "Not Reviewed"]
+            
             gs.add_rows_to_gsheet(create_rows, "To Create")
-            gs.add_rows_to_gsheet(review_rows, "Reviewed Cards Cache")
+            gs.add_rows_to_gsheet(answer_rows, "Reviewed Cards Cache")
+            print("updated 'to create' and 'review cards cache' in gsheet")
             if nonUI_state.next is not None:
                 nonUI_state.next(*nonUI_state.next_func_args)
             nonUI_state.form_submit_button_clicked = False
@@ -362,32 +385,13 @@ def chat(nonUI_state):
         expander_messages_widget(nonUI_state)
         ratings_widget(nonUI_state)
 
-
+    nonUI_state.flag_generated_response_this_run = False # reset this flag
 
 if __name__ == '__main__':
     nonUI_state = initialize_app("header", "subheader")
     chat(nonUI_state)
     if nonUI_state.on_automatic_rerun:
         nonUI_state.on_automatic_rerun = False
-    #def form_func():
-    #    def on_submit(val):
-    #        nonUI_state.administer_rating_form = False
-    #        nonUI_state.submitted_ratings = {"val":val}
-    #        st.balloons()
-    #    with st.form('Rating Form', clear_on_submit=False):
-    #        #for word in [state_object.main_words[-2]] + state_object.current_aux_words:
-    #        #for word in ["word1", "word2", "word3", "word4"]:
-    #            #r = st.radio(word, ("Again", "Hard", "Good", "Easy", "N/A"), horizontal=True)
-    #            #r =  st.text_input(word) # also yields all blanks
-    #            #nonUI_state.submitted_ratings[word] = r
-    #        val = st.slider("slider")
-    #        return st.form_submit_button('Submit', on_click=on_submit, args=(val,)), val
-    #        
-    #if nonUI_state.administer_rating_form: 
-    #    nonUI_state.submitted_form, nonUI_state.submitted_ratings = form_func()
-    #if nonUI_state.submitted_form:
-    #    print("val(s):", nonUI_state.submitted_ratings)
-    #    nonUI_state.submitted_form = False
-
+    
 
 #https://stackoverflow.com/questions/52718897/minimal-shortest-html-for-clickable-show-hide-text-or-spoiler
