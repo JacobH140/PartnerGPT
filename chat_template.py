@@ -112,7 +112,7 @@ class SessionNonUIState:
             value = session_state_object['query'] 
             #tr.text_input("You: ", value=session_state_object['query'], key="query", placeholder='speak or type', label_visibility="collapsed", on_change=clear_text, disabled=self.administer_rating_form)
         #else:
-        tr.text_input("You: ", key="query", value="test value", placeholder='speak or type', label_visibility="collapsed", on_change=clear_text, disabled=self.administer_rating_form)
+        tr.text_input("You: ", key="query", value="Resume conversation...", placeholder='speak or type', label_visibility="collapsed", on_change=clear_text, disabled=self.administer_rating_form)
 
 
     def stream_response(self, messages, real_time_audio=False):

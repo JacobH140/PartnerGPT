@@ -37,7 +37,10 @@ def translate_get_initial_message(system_prompt, user_prompt):
     return messages
 
 
-
+st.set_page_config(
+    page_title="Translate",
+    page_icon="🧊",
+)
 
 
 if 'translate_state' not in st.session_state:
