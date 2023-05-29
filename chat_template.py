@@ -81,6 +81,7 @@ class SessionNonUIState:
     def __init__(self, name):
         self.name = name
         self.custom = defaultdict(lambda: None) # an instance can have some 'custom' attributes that other instances don't
+        self.end_message = "Conversation has ended... possibly unintentially."
 
         self.audio_playing = False
 
@@ -118,7 +119,8 @@ class SessionNonUIState:
             value = session_state_object[f"{nonUI_state.name}_query"]
             #tr.text_input("You: ", value=session_state_object['query'], key="query", placeholder='speak or type', label_visibility="collapsed", on_change=clear_text, disabled=self.administer_rating_form)
         #else:
-        tr.text_input("You: ", key=f"{nonUI_state.name}_query", placeholder='begin or resume conversation', label_visibility="collapsed", on_change=clear_text, args=(nonUI_state,), disabled=self.administer_rating_form)
+        ended = self.custom['out_of_cards'] and nonUI_state.on_automatic_rerun 
+        tr.text_input("You: ", key=f"{nonUI_state.name}_query", placeholder='begin / resume conversation', label_visibility="collapsed", on_change=clear_text, args=(nonUI_state,), disabled=self.administer_rating_form or ended)
 
 
     def stream_response(self, messages, real_time_audio=False):
@@ -168,6 +170,14 @@ class SessionNonUIState:
 
     def generate_bot_response_placeholder(self, query):
         messages = self.messages
+
+        print("gbotp.self.custom['out_of_cards']: ", self.custom['out_of_cards'])
+        if self.custom['out_of_cards'] == 1 and self.on_automatic_rerun:
+            update_UI_messages(self)
+            #st.warning("test")
+            
+            return messages
+
         messages = update_chat(messages, "user", query)
         self.past.append(query)
         update_UI_messages(self)
@@ -300,18 +310,36 @@ def UI_controls(nonUI_state):
         #stt.mic_button_monitor(tr, nonUI_state, stt_button, st.session_state) 
         
     with next_button:
-        st.button("Next", key="next_button", on_click=on_proceed_button_click, args=(nonUI_state,), disabled=nonUI_state.administer_rating_form)
+        ended = nonUI_state.custom['out_of_cards'] == 1 and nonUI_state.on_automatic_rerun 
+        st.button("Next", key="next_button", on_click=on_proceed_button_click, args=(nonUI_state,), disabled=nonUI_state.administer_rating_form or ended)
+
+
 
 def on_proceed_button_click(nonUI_state):
     print("on_proceed_button_click is running")
+    print("nonUI_state.custom['out_of_cards']: ", nonUI_state.custom['out_of_cards'])
+    flag = False
+    if nonUI_state.custom['out_of_cards'] > 1 and not nonUI_state.administer_rating_form:
+        st.warning("nonUI_state.end_message")
+        flag = True
     #nonUI_state.messages = nonUI_state.initial_message_func(nonUI_state.vocab_words_testing_temp.pop(), nonUI_state.aux_words_testing_temp)
     nonUI_state.messages = nonUI_state.initial_message_func(*nonUI_state.initial_message_func_args)
-    print(nonUI_state.messages)
+    
+
+
+
+    #print(nonUI_state.messages)
     if nonUI_state.chatting_has_begun:
         nonUI_state.administer_rating_form = True
         clear_text(nonUI_state)
+
+
+
+    if flag:
+        return
     
     if f"{nonUI_state.name}_query" in st.session_state and not nonUI_state.administer_rating_form: # first part ensures this doesn't run when 'begin' is pressed, second part ensures 'next' behavior doesn't run while the rating form is being administered
+
         st.session_state[f"{nonUI_state.name}_queried"] = f'{nonUI_state.name} — **next !**'
         nonUI_state.messages = nonUI_state.generate_bot_response_placeholder(query=st.session_state[f"{nonUI_state.name}_query"])
         clear_text(nonUI_state)
@@ -372,7 +400,8 @@ def chat(nonUI_state):
     if nonUI_state.on_automatic_rerun: # this is when the submitted ratings are the real ones
         nonUI_state.submitted_ratings = nonUI_state.submitted_ratings | nonUI_state.submitted_rating # dictionary merge
     
-
+    if nonUI_state.custom['out_of_cards'] and nonUI_state.on_automatic_rerun:
+        st.warning(nonUI_state.end_message)
 
     
     if nonUI_state.chatting_has_begun:
@@ -384,6 +413,8 @@ def chat(nonUI_state):
     if nonUI_state.generated:
         expander_messages_widget(nonUI_state)
         ratings_widget(nonUI_state)
+    
+
 
     nonUI_state.flag_generated_response_this_run = False # reset this flag
 

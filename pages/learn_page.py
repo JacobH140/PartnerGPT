@@ -66,26 +66,47 @@ import chat_template
 #    return voc_words
 
 def learn_get_initial_message(learn_state):
+    if learn_state.custom['out_of_cards']:
+        return learn_state.messages
+
+    if not learn_state.administer_rating_form and f"{learn_state.name}_query" not in st.session_state:
+        idx = -1
+    elif len(learn_state.custom['cards_new']) > 1:
+        idx = -2
+    else:
+        idx = -1
+
+    if len(learn_state.custom['cards_new']) < 2:
+        #learn_state.begin_disabled = True
+        learn_state.custom['out_of_cards'] += 1
+    else:
+        learn_state.begin_disabled = False
+
     # temp aux words
     aux_words_sim = [{"简体字simplified": "小狗", "繁体字traditional": "小狗", "id": "1"}, {"简体字simplified": "小猫", "繁体字traditional": "小貓", "id": "2"}]
     #
     print("reviewing: ", learn_state.custom['cards_new'])
-    card_new = learn_state.custom['cards_new'][-1]
+
+
+
+    card_new = learn_state.custom['cards_new'][idx]
     vocab_word = card_new[learn_state.simpl_or_trad]
     aux_words = [aw[learn_state.simpl_or_trad] for aw in aux_words_sim]
 
 
     initial_system = f"""You are a Chinese language professor tutoring me, an English speaking student, in learning Chinese. Give a mini-lesson introducing the word {vocab_word}. Be concise, as there are many words to get through after. Quiz me as you go in order to move the lesson forward. When I make mistakes, you should correct and remember those mistakes. When I ask questions, you should answer in mostly English and remember those questions. Only include pinyin for new words."""
-    initial_user = f"Guide me through the word {vocab_word}. During the lesson (e.g., when providing example sentences using {vocab_word}), incorporate usage of {aux_words[:]}. You should provide an example sentence before asking me to provide one. Use {st.session_state.learn_state.simpl_or_trad} Chinese characters."
-
+    initial_user = f"Guide me through the word **{vocab_word}**. During the lesson (e.g., when providing example sentences using {vocab_word}), incorporate usage of {aux_words[:]}. You should provide an example sentence before asking me to provide one. Use {st.session_state.learn_state.simpl_or_trad} Chinese characters."
+    print("initial user: ", initial_user)
     print("vocab_word in LGIM func: ", vocab_word)
-    learn_state.to_answer = {"text":[vocab_word] + aux_words, "ids": [card_new["id"]] + [aw["id"] for aw in aux_words_sim]}
+    learn_state.to_answer = {"text":[learn_state.custom['cards_new'][-1][learn_state.simpl_or_trad]] + aux_words, "ids": [learn_state.custom['cards_new'][-1]["id"]] + [aw["id"] for aw in aux_words_sim]}
     print("learn_state.to_answer in LGIM func: ", learn_state.to_answer)
 
     messages=[
             {"role": "system", "content": initial_system},
             {"role": "user", "content": initial_user},
         ]
+    
+
     return messages
 
 def update_databases(learn_state):
@@ -100,6 +121,9 @@ def update_databases(learn_state):
 
 def next(learn_state):
     print("type: ", type(learn_state))
+    #if learn_state.custom['out_of_cards']:
+    #    st.warning("You're out of cards! Head over to **Review** to review some words, or **Converse** to put things into practice...")
+    #    return
     update_databases(learn_state)
 
 
@@ -128,10 +152,13 @@ else:
     st.session_state.learn_state.begin_disabled = False
 
 
+if 'out_of_cards' not in st.session_state.learn_state.custom:
+    st.session_state.learn_state.custom['out_of_cards'] = 0
 
 st.session_state.learn_state.to_create_prompt = "Repeat back: ['this', 'is', 'create', 'prompt']. Make sure your answer is a python list."
 st.session_state.learn_state.initial_message_func = learn_get_initial_message
 st.session_state.learn_state.initial_message_func_args = (st.session_state.learn_state,)
+st.session_state.learn_state.end_message = "END MESSAGE There are no new words to learn right now! Head over to **Review** to review some words, or **Converse** to put things into practice..."
 
 chat_template.chat(st.session_state.learn_state)
 
