@@ -2,6 +2,7 @@ import gspread
 import pandas as pd
 import gspread_dataframe as gd
 import os
+from auth_json import auth_json
 
 
 def export_to_sheets(ws,df=None,mode='r'):
@@ -16,7 +17,7 @@ def export_to_sheets(ws,df=None,mode='r'):
     else:
         return gd.get_as_dataframe(worksheet=ws)
 
-def add_rows_to_gsheet(list_of_lists, sheet_name, auth_json='anki-359920-d78c1a86928f.json', url='https://docs.google.com/spreadsheets/d/1MfIh7x2sIwnLYFUpunpTb_x77woirfPOSGEQhqJ0Qto/edit?usp=sharing'):
+def add_rows_to_gsheet(list_of_lists, sheet_name, auth_json=auth_json, url='https://docs.google.com/spreadsheets/d/1MfIh7x2sIwnLYFUpunpTb_x77woirfPOSGEQhqJ0Qto/edit?usp=sharing'):
     # the dict keys are the sheet names, the values are the rows appended to them
     # (the values are lists of lists, where each list is a row)
     sa = gspread.service_account(auth_json)
@@ -39,7 +40,7 @@ def clear_sheet(ws, keep_headers):
     else:
         ws.clear()
 
-def access_gsheet(auth_json='anki-359920-d78c1a86928f.json', file_name='Async Translate',
+def access_gsheet(auth_json=auth_json, file_name='Async Translate',
                   sheet_name='Translations'):
     sa = gspread.service_account(auth_json)
     sh = sa.open(file_name)
@@ -47,14 +48,14 @@ def access_gsheet(auth_json='anki-359920-d78c1a86928f.json', file_name='Async Tr
     return pd.DataFrame(wks.get_all_records()), wks
 
 
-def access_gsheet_by_url(auth_json='anki-359920-d78c1a86928f.json', url='Async Translate',
+def access_gsheet_by_url(auth_json=auth_json, url='Async Translate',
                   sheet_name='Translations'):
     sa = gspread.service_account(auth_json)
     sh = sa.open_by_url(url)
     wks = sh.worksheet(sheet_name)
     return pd.DataFrame(wks.get_all_records()), wks
 
-def access_gsheet_by_url_no_df(auth_json='anki-359920-d78c1a86928f.json', url='https://docs.google.com/spreadsheets/d/1MfIh7x2sIwnLYFUpunpTb_x77woirfPOSGEQhqJ0Qto/edit?usp=sharing',
+def access_gsheet_by_url_no_df(auth_json=auth_json, url='https://docs.google.com/spreadsheets/d/1MfIh7x2sIwnLYFUpunpTb_x77woirfPOSGEQhqJ0Qto/edit?usp=sharing',
                   sheet_name='Translations'):
     sa = gspread.service_account(auth_json)
     sh = sa.open_by_url(url)
