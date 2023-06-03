@@ -2,7 +2,9 @@ import gspread
 import pandas as pd
 import gspread_dataframe as gd
 import os
+import json
 from auth_json import auth_json
+auth_json = json.loads(auth_json)
 
 
 def export_to_sheets(ws,df=None,mode='r'):
@@ -20,7 +22,7 @@ def export_to_sheets(ws,df=None,mode='r'):
 def add_rows_to_gsheet(list_of_lists, sheet_name, auth_json=auth_json, url='https://docs.google.com/spreadsheets/d/1MfIh7x2sIwnLYFUpunpTb_x77woirfPOSGEQhqJ0Qto/edit?usp=sharing'):
     # the dict keys are the sheet names, the values are the rows appended to them
     # (the values are lists of lists, where each list is a row)
-    sa = gspread.service_account(auth_json)
+    sa = gspread.service_account_from_dict(auth_json)
     sh = sa.open_by_url(url)
     wks = sh.worksheet(sheet_name)
     wks.append_rows(list_of_lists)
@@ -42,7 +44,7 @@ def clear_sheet(ws, keep_headers):
 
 def access_gsheet(auth_json=auth_json, file_name='Async Translate',
                   sheet_name='Translations'):
-    sa = gspread.service_account(auth_json)
+    sa = gspread.service_account_from_dict(auth_json)
     sh = sa.open(file_name)
     wks = sh.worksheet(sheet_name)
     return pd.DataFrame(wks.get_all_records()), wks
@@ -50,14 +52,14 @@ def access_gsheet(auth_json=auth_json, file_name='Async Translate',
 
 def access_gsheet_by_url(auth_json=auth_json, url='Async Translate',
                   sheet_name='Translations'):
-    sa = gspread.service_account(auth_json)
+    sa = gspread.service_account_from_dict(auth_json)
     sh = sa.open_by_url(url)
     wks = sh.worksheet(sheet_name)
     return pd.DataFrame(wks.get_all_records()), wks
 
 def access_gsheet_by_url_no_df(auth_json=auth_json, url='https://docs.google.com/spreadsheets/d/1MfIh7x2sIwnLYFUpunpTb_x77woirfPOSGEQhqJ0Qto/edit?usp=sharing',
                   sheet_name='Translations'):
-    sa = gspread.service_account(auth_json)
+    sa = gspread.service_account_from_dict(auth_json)
     sh = sa.open_by_url(url)
     wks = sh.worksheet(sheet_name)
     return wks.get_all_records(), wks
