@@ -86,3 +86,5 @@ def log_df(processed_df, csv_filename):
         processed_df.to_csv(csv_filename, sep='\t')
     else:
         processed_df.to_csv(csv_filename, mode='a', index=False, header=False, sep='\t')
+
+        

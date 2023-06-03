@@ -112,7 +112,7 @@ def learn_get_initial_message(learn_state):
 def update_databases(learn_state):
     print("retrieving new cards and reviewed cards cache from gsheet")
     from_gsheet_new_cards, wks_new_cards = gs.access_gsheet_by_url_no_df(sheet_name="New")
-    from_gsheet_reviewed_cache, wks_reviewed_cache_cards = gs.access_gsheet_by_url_no_df(sheet_name="Reviewed Cards Cache")
+    from_gsheet_reviewed_cache, wks_reviewed_cache_cards = gs.access_gsheet_by_url_no_df(sheet_name="Answered Cards Cache")
     excluded = {entry["id"] for entry in from_gsheet_reviewed_cache}
     print("excluded: ", excluded)
     learn_state.custom['cards_new'] = [entry for entry in from_gsheet_new_cards if entry["id"] not in excluded] # essentially a set minus

@@ -86,7 +86,7 @@ def get_note_and_card_info(card_ids):
 
     return note_info, card_info
 
-def get_field_data_with_status(deck_name, status, field_name, limit=None):
+def get_field_data_with_status(deck_name, status, field_names, limit=None):
     if status == "due":
         card_ids = get_due_ids(deck_name=deck_name, limit=limit)
     elif status == "new":
@@ -95,11 +95,17 @@ def get_field_data_with_status(deck_name, status, field_name, limit=None):
         card_ids = get_review_ids(deck_name=deck_name, limit=limit)
     else:
         raise ValueError("status must be 'due', 'new', or 'review'")
-    note_info, _ = get_note_and_card_info(card_ids)
+    note_info, card_info = get_note_and_card_info(card_ids)
 
-    voc_words = [note_info[key]['fields'][field_name]['value'] for key in note_info.keys()] 
+    note_field_data = defaultdict(list)
+    card_field_data = defaultdict(list)
 
-    return voc_words
+    for field_name in field_names:
+        note_field_data[field_name] = [note_info[key]['fields'][field_name]['value'] for key in note_info.keys()]
+        card_field_data[field_name] = [card_info[key]['fields'][field_name]['value'] for key in card_info.keys()]
+
+
+    return note_field_data, card_field_data
 
 
 def gui_answer_current_card(ease):
@@ -135,18 +141,20 @@ def permute_and_add(filtered_df, deck_name, model_name, fields_to_ignore=None, f
                 add_note(other_fields_dict, deck_name, model_name, audio_dict, tags)
 
 if __name__ == '__main__':
-    def format_to_plaintext(data):
-        plaintext_list = ""
-        for character, components in data:
-            plaintext_list += f'{character}\\n'
-            for component, meaning in components:
-                plaintext_list += f' - {component}: {meaning}\\n'
-        return plaintext_list
-
-    data = [('做', [('亻', 'human'), ('十', 'ten'), ('口', 'mouth'), ('⺙', 'knock')]), 
-            ('米', [('米', 'rice')]), 
-            ('饭', [('饣', 'eat/food'), ('⺁', 'cliff'), ('又', 'right hand')])]
-
-    anki_plaintext_list = format_to_plaintext(data)
-    print(anki_plaintext_list)
+    #def format_to_plaintext(data):
+    #    plaintext_list = ""
+    #    for character, components in data:
+    #        plaintext_list += f'{character}\\n'
+    #        for component, meaning in components:
+    #            plaintext_list += f' - {component}: {meaning}\\n'
+    #    return plaintext_list
+#
+    #data = [('做', [('亻', 'human'), ('十', 'ten'), ('口', 'mouth'), ('⺙', 'knock')]), 
+    #        ('米', [('米', 'rice')]), 
+    #        ('饭', [('饣', 'eat/food'), ('⺁', 'cliff'), ('又', 'right hand')])]
+#
+    #anki_plaintext_list = format_to_plaintext(data)
+    #print(anki_plaintext_list)
+    new_card_data = get_field_data_with_status('中文', 'new', field_names=["简体字simplified", "繁体字traditional", "id"])
+    print(new_card_data)
     

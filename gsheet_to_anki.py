@@ -6,7 +6,58 @@ import jieba
 import pandas as pd
 import re
 import time
+import google
 from datetime import datetime
+
+def make_cards_from_translation_gsheet_indefinite(persistent=False):
+    # will 'listen' to the gsheet forever; meant to be run as part of anki, for example
+    # the idea is that this will run once anki is loaded (via addHook("profileLoaded", on_profile_loaded))
+    # and keep running in the background while Anki is. If anki is is quit or suddenly disconnects, nothing bad should happen.
+    url = 'https://docs.google.com/spreadsheets/d/1MfIh7x2sIwnLYFUpunpTb_x77woirfPOSGEQhqJ0Qto/edit?usp=sharing'
+    while True:
+        try:
+            df, wks = gs.access_gsheet_by_url(url=url, sheet_name='To Create')
+            if df.empty():
+                time.sleep(3600) # wait a while so as to not spam API calls
+                
+            elif not df.empty:
+                    gs.log_df(df, 'learning-data/gsheet_df.csv')
+                    for i, row in df.iterrows():
+                      entry = list(row)
+                      num_tries = 0
+                      success = False
+                      seconds_to_sleep = 10
+                      while not success:
+                        if not row[0]: # disregard any empty text entries
+                            wks.delete_rows(2, 2)
+                            continue
+                        try:
+                            mkc.make_anki_notes_from_text(text=row[0], source=row[1], context_messages=row[2]) # Text (in either language, simpl or trad), Source, context_messages data, respectively
+                            success = True
+                            entry[3] = datetime.now().strftime("%Y-%m-%d %H:%M:%S") # log with the current time
+                            _, log_wks = gs.access_gsheet_by_url(url=url, sheet_name='Created')
+                            log_wks.append_row(entry)
+                            wks.delete_rows(2, 2) # delete the first non-header spreadsheet row, this should be the one we just processed
+                            print(f"Created note for text {row[0]}, assuming that one does not already exist.")
+                        except Exception as e:
+                            if not persistent:
+                                raise Exception(f"Error on gsheet:\n---\n {e} \n---\n Text was '{row[0]}'. Only tried once, set persistent=True to have me re-try up to 5 times.")
+                            else:
+                                print(f'Error on row of gsheet:\n---\n {e} \n---\n, text was {row[0]}. Sleeping for {seconds_to_sleep} seconds then trying again.')
+                                num_tries += 1
+                                time.sleep(seconds_to_sleep)
+                                seconds_to_sleep *= 2
+                                if num_tries > 5:
+                                    raise Exception(f'Error on row of gsheet, tried and failed {num_tries} times:\n---\n {e} \n---\n, text was {row[0]}. Slept for up to {seconds_to_sleep} seconds each time.')
+                                
+        except google.auth.exceptions.TransportError as e:
+           print(e)
+           print("Probably not connected to WiFi, no issue")
+           time.sleep(100)
+           continue
+        
+
+
 
 def make_cards_from_translation_gsheet(persistent=False):
     url = 'https://docs.google.com/spreadsheets/d/1MfIh7x2sIwnLYFUpunpTb_x77woirfPOSGEQhqJ0Qto/edit?usp=sharing'
@@ -23,13 +74,13 @@ def make_cards_from_translation_gsheet(persistent=False):
                 wks.delete_rows(2, 2)
                 continue
             try:
-                #mkc.make_anki_notes_from_text(text=row[0], source=row[1], context_messages=row[2]) # Text (in either language, simpl or trad), Source, context_messages data, respectively
+                mkc.make_anki_notes_from_text(text=row[0], source=row[1], context_messages=row[2]) # Text (in either language, simpl or trad), Source, context_messages data, respectively
                 success = True
                 entry[3] = datetime.now().strftime("%Y-%m-%d %H:%M:%S") # log with the current time
                 _, log_wks = gs.access_gsheet_by_url(url=url, sheet_name='Created')
                 log_wks.append_row(entry)
                 wks.delete_rows(2, 2) # delete the first non-header spreadsheet row, this should be the one we just processed
-                print(f"Created note for text {row[0]}, assuming one does not already exist.")
+                print(f"Created note for text {row[0]}, assuming that one does not already exist.")
             except Exception as e:
                 if not persistent:
                     raise Exception(f"Error on gsheet:\n---\n {e} \n---\n Text was '{row[0]}'. Only tried once, set persistent=True to have me re-try up to 5 times.")
@@ -69,7 +120,8 @@ def remove_nonalnum(_str):
 
 if __name__ == "__main__":
     # always run vocab first on a small df to generate known-vocab.csv if it doesn't exist for some reason!
-    make_cards_from_translation_gsheet()
+    #make_cards_from_translation_gsheet()
+    make_cards_from_translation_gsheet_indefinite(persistent=True)
     
 
 
