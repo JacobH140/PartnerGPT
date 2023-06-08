@@ -53,8 +53,10 @@ def get_chatgpt_response(messages, temperature, model="gpt-3.5-turbo", verbose=T
             else:
                 tries += 1
                 print("Encountered Rate Limit error: \n----\n", r, "\n----\n", "...will sleep for", sleep_seconds, "seconds")
-                sleep_seconds *= 2
+                print("messags that are going over are: ", messages)
                 time.sleep(sleep_seconds)
+                sleep_seconds *= 2
+                
         
     
     time.sleep(2) # to avoid overloading with requests
@@ -105,6 +107,7 @@ def get_chatgpt_response_stream_chunk(messages, model="gpt-3.5-turbo"):
         collected_messages.append(chunk_message)  # save the message
 
 def update_chat(messages, role, content):
+    print("chat updated, messages are now: ", messages)
     messages.append({"role": role, "content": content})
     return messages
 

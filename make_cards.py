@@ -22,7 +22,9 @@ import openai
 import ast
 import anki_utils
 import timeit
+import copy
 # import dictionary
+import hanzipy as hanzi
 from hanzipy.decomposer import HanziDecomposer
 decomposer = HanziDecomposer()
 # import decomposer
@@ -85,7 +87,7 @@ def generate_audio(audio_url, title, audio_loc):
 
 
 def make_hsk_tag(simplified_word):
-    new_hsk_v3 = pd.read_csv("learning-data/new_HSK_3.0.csv")
+    new_hsk_v3 = pd.read_csv(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__)))), 'learning-data/new_HSK_3.0.csv'))
     hsk_v3_level = new_hsk_v3.columns[new_hsk_v3.isin([simplified_word]).any()]
     if hsk_v3_level.empty: # above finds nothing
         return "not_in_hsk_v3"
@@ -156,7 +158,7 @@ def make_anki_notes_from_text(text, source, context_messages):
         #if n not in unknown_vocabs:
             print("making note (if one doesn't already exist) for  '", n, "'")
             start_time = timeit.default_timer()
-            fields_dict, tags_dict = generate_fields_and_tags(n, context_messages=context_messages, example_sentence_given=example_sentence, gpt_model="gpt-3.5-turbo", source_tag=source, audio="url", audio_loc="/Users/jacobhume/PycharmProjects/ChineseAnki/translation-audio", add_image=False)
+            fields_dict, tags_dict = generate_fields_and_tags(n, context_messages=copy.deepcopy(context_messages), example_sentence_given=example_sentence, gpt_model="gpt-3.5-turbo", source_tag=source, audio="url", audio_loc="/Users/jacobhume/PycharmProjects/ChineseAnki/translation-audio", add_image=False)
             tags = tags_dict_to_tags_list(tags_dict)
             anki_utils.add_note(fields_dict, deck_name="中文", model_name="中文生词", tags=tags)
             print(f"note for '{n}' created in ", timeit.default_timer() - start_time, " seconds")
@@ -222,6 +224,10 @@ def decomposition_info_helper(fields_dict):
     # get decomposition information — traditional
     trad_radicals_and_phonetics_dict_list = cnlp.text_decomposition_info(fields_dict["繁体字traditional"])
 
+    if simpl_radicals_and_phonetics_dict_list is None or trad_radicals_and_phonetics_dict_list is None or None in simpl_radicals_and_phonetics_dict_list or None in trad_radicals_and_phonetics_dict_list:
+        print("None in simpl_radicals_and_phonetics_dict_list or trad_radicals_and_phonetics_dict_list")
+        return fields_dict
+
     # remove the phonetic info that bears no relation to the character
     
 
@@ -281,15 +287,20 @@ def chatgpt_semantic_tags_helper(fields_dict, gpt_model, semantic_tags_info_prom
 
 def chatgpt_check_if_grammar_point_tag(text, context_messages):
     prompt = f"is {text} a grammar point in Chinese? Answer ONLY with 'True' or 'False', and nothing else (not even punctuation)."
-    context_messages.append({"role":"user", "content":prompt})
-    response = utils.get_chatgpt_response_enforce_python_formatting(context_messages, response_on_fail="False", extra_prompt="Your formatting is bad — make sure to give your response as either 'True' or 'False', and nothing but 'True' or 'False'.", start_temperature=0)
-    utils.update_chat(context_messages, "assistant", response)
+    #context_messages.append({"role":"user", "content":prompt})
+    input = [{"role":"user", "content":prompt}]
+    response = utils.get_chatgpt_response_enforce_python_formatting(input, response_on_fail="False", extra_prompt="Your formatting is bad — make sure to give your response as either 'True' or 'False', and nothing but 'True' or 'False'.", start_temperature=0)
+    #utils.update_chat(context_messages, "assistant", response)
     return response, context_messages
           
 
 def make_frequency_percentile_tags(text):
     # e.g., if a character has the tag "top_20_percent", that means it is in the top 10% of most frequently used characters in the language
-    freq_percentile = max([dictionary.get_character_frequency(character)["percentage"] for character in text])
+    try:
+        freq_percentile = max([dictionary.get_character_frequency(character)["percentage"] for character in text])
+    except hanzi.exceptions.NotAHanziCharacter:
+        print(f"Character {text} is not enough a hanzi character, so it has no frequency percentile...")
+        return []
     percents = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
     categories = ["in_top_10_percent", "in_top_20_percent", "in_top_30_percent", "in_top_40_percent", "in_top_50_percent", "in_top_60_percent", "in_top_70_percent", "in_top_80_percent", "in_top_90_percent", "in_top_100_percent"]
     freq_tags = []
@@ -299,20 +310,21 @@ def make_frequency_percentile_tags(text):
     return freq_tags
 
 def chatgpt_pos_and_phrase_type_helper(text, context_messages):
+    context_messages_copy = copy.deepcopy(context_messages)
     pos_system_prompt = """Your job is now to identify all parts-of-speech throughout the following text. Keep in mind that some words in Chinese can be multiple parts-of-speech at once, though you should not include duplicates in your response. Remember to format your answer as a Python list of strings, all lowercase and with no duplicate entries."""
-    context_messages.extend([{"role":"system", "content":pos_system_prompt}, {"role":"user", "content":f"The text is {text}. Remember to format your answer as a Python list of strings."}])
-    pos_response = utils.get_chatgpt_response_enforce_python_formatting(context_messages, response_on_fail="['ChatGPT gave incorrectly formatted output']")
-    context_messages = utils.update_chat(context_messages, "assistant", pos_response)
+    context_messages_copy.extend([{"role":"system", "content":pos_system_prompt}, {"role":"user", "content":f"The text is {text}. Remember to format your answer as a Python list of strings."}])
+    pos_response = utils.get_chatgpt_response_enforce_python_formatting(context_messages_copy, response_on_fail="['ChatGPT gave incorrectly formatted output']")
+    context_messages_copy = utils.update_chat(context_messages_copy, "assistant", pos_response)
     phrase_system_prompt = "Your job is now to identify the what type of syntactic phrase the following text is. The options are CP, TP, VP, NP, PP, AdjP, AdvP, XP, X. Respond ONLY with your answer. If you think the text is not a phrase, respond with 'not_a_phrase'."
-    context_messages.extend([{"role":"system", "content":phrase_system_prompt}, {"role":"user", "content":f"The text is {text}"}])
-    phrase_response = utils.get_chatgpt_response(context_messages, temperature=0)
-    context_messages = utils.update_chat(context_messages, "assistant", phrase_response)
+    context_messages_copy.extend([{"role":"system", "content":phrase_system_prompt}, {"role":"user", "content":f"The text is {text}"}])
+    phrase_response = utils.get_chatgpt_response(context_messages_copy, temperature=0)
+    context_messages_copy = utils.update_chat(context_messages_copy, "assistant", phrase_response)
     while True:
         try:
             is_mw_system_prompt = """Your job is now to identify if the following text is or contains a measure word. If yes, respond ONLY with 'True'. If no, respond ONLY with 'False'."""
-            context_messages.extend([{"role":"system", "content":is_mw_system_prompt}, {"role":"user", "content":f"The text is {text}. Remember to write your answer as exactly one of 'True' or 'False'."}])
-            is_mw_response = utils.get_chatgpt_response(context_messages, temperature=0)
-            context_messages = utils.update_chat(context_messages, "assistant", phrase_response)
+            context_messages_copy.extend([{"role":"system", "content":is_mw_system_prompt}, {"role":"user", "content":f"The text is {text}. Remember to write your answer as exactly one of 'True' or 'False'."}])
+            is_mw_response = utils.get_chatgpt_response(context_messages_copy, temperature=0)
+            context_messages_copy = utils.update_chat(context_messages_copy, "assistant", phrase_response)
             return pos_response, phrase_response, is_mw_response, context_messages
         except Exception as e:
             print(e)
@@ -424,8 +436,8 @@ def generate_fields_and_tags(text_in_english_or_simplified_or_traditional, gpt_m
     
 
     arbitrary_note_prompt = """
-   You are a helpful AI Chinese language teacher, helping a student create Anki flashcards. I will give you a word in one of english, simplfied, or traditional Chinese. Please respond with the following information, formatted as a python dictionary (quoted strings are the dictionary keys).
-   My Chinese is advanced enough to not need pinyin, so please do not include pinyin unless, and only when, specifically asked for.
+   You are a helpful AI Chinese language teacher, helping a student create Anki flashcards. I will give you a word in one of english, simplfied, or traditional Chinese. Respond with the following information, formatted as a python dictionary (quoted strings are the dictionary keys).
+   Do not include pinyin except where requested.
    
 - "简体字simplified" : the simplified Chinese word.
 - "繁体字traditional" : the traditional Chinese word.
@@ -446,7 +458,7 @@ def generate_fields_and_tags(text_in_english_or_simplified_or_traditional, gpt_m
 - "量词/量詞classifier(s) translation": English translation/explanation of the measure words. Disclude pinyin.
 - "usages simplified" : Any words, common phrases, idioms, etc. that use this word. Disclide pinyin. For example, for 的 the response could be 有的时候, 别的, 是她做的，什么的. This is NOT just a place to add extra example sentences!
 - "usages translation" : English translation of the usages. Disclude pinyin.
-- "Usage Notes" : Any other remarks on usage, e.g., "this word is only used in Taiwan", "this word is only used in the context of X" and so on... will become a FAQ field when I'm reviewing. No more than one or two bullet points. Say "None yet" if you have nothing to add.
+- "Usage Notes" : Just say "None yet"
 Thanks!"""
 
 

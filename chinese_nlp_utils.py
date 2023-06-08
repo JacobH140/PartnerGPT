@@ -77,7 +77,10 @@ def chatgpt_smartish_segmentize(text):
 def word_decomposition_info(word):
     regularity_scale = {0: "No Regularity", 1: "Exact Match (with tone)", 2: "Syllable Match (without tone)", 3: "Alliterates (similar initials)", 4: "Rhymes (similar finals)"}
     output = defaultdict()
-    decomposition = decomposer.decompose_many(word)
+    try:
+        decomposition = decomposer.decompose_many(word)
+    except hanzi.exceptions.NotAHanziCharacter:
+        return None
     radicals = defaultdict(list)
     for k in decomposition.keys():
         radicals[k] = decomposition[k]["radical"]
@@ -127,6 +130,8 @@ def text_decomposition_info(text):
     output = []
     for word in words:
         decomp_dict = word_decomposition_info(word)
+        if decomp_dict is None:
+            return output
         for key, value in zip(decomp_dict.keys(), decomp_dict.values()):
             output.append({key: value})
     return output

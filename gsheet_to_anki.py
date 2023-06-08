@@ -8,20 +8,29 @@ import re
 import time
 import google
 from datetime import datetime
+import logging
+import traceback
+
+# Run below code in terminal from the 中文 folder and Chinese conda environment to create executable to live in add-on folder:
+"""pyinstaller --hidden-import hanzipy --collect-all hanzipy  gsheet_to_anki.py"""
+# Then move the resulting dist folder to the add-on folder, and rename it to `gsheet_to_anki`
 
 def make_cards_from_translation_gsheet_indefinite(persistent=False):
+
     # will 'listen' to the gsheet forever; meant to be run as part of anki, for example
     # the idea is that this will run once anki is loaded (via addHook("profileLoaded", on_profile_loaded))
     # and keep running in the background while Anki is. If anki is is quit or suddenly disconnects, nothing bad should happen.
     url = 'https://docs.google.com/spreadsheets/d/1MfIh7x2sIwnLYFUpunpTb_x77woirfPOSGEQhqJ0Qto/edit?usp=sharing'
     while True:
+        time.sleep(1) # wait a tiny bit to avoid overloading anything
         try:
             df, wks = gs.access_gsheet_by_url(url=url, sheet_name='To Create')
-            if df.empty():
+            if df.empty:
+                print("no cards to make right now... sleeping for 1 hour")
                 time.sleep(3600) # wait a while so as to not spam API calls
                 
             elif not df.empty:
-                    gs.log_df(df, 'learning-data/gsheet_df.csv')
+                    gs.log_df(df, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__)))), 'learning-data/gsheet_df.csv'))
                     for i, row in df.iterrows():
                       entry = list(row)
                       num_tries = 0
@@ -41,9 +50,11 @@ def make_cards_from_translation_gsheet_indefinite(persistent=False):
                             print(f"Created note for text {row[0]}, assuming that one does not already exist.")
                         except Exception as e:
                             if not persistent:
+                                print(traceback.format_exc())
                                 raise Exception(f"Error on gsheet:\n---\n {e} \n---\n Text was '{row[0]}'. Only tried once, set persistent=True to have me re-try up to 5 times.")
                             else:
                                 print(f'Error on row of gsheet:\n---\n {e} \n---\n, text was {row[0]}. Sleeping for {seconds_to_sleep} seconds then trying again.')
+                                print(traceback.format_exc())
                                 num_tries += 1
                                 time.sleep(seconds_to_sleep)
                                 seconds_to_sleep *= 2
@@ -63,7 +74,7 @@ def make_cards_from_translation_gsheet(persistent=False):
     url = 'https://docs.google.com/spreadsheets/d/1MfIh7x2sIwnLYFUpunpTb_x77woirfPOSGEQhqJ0Qto/edit?usp=sharing'
     df, wks = gs.access_gsheet_by_url(url=url, sheet_name='To Create')
     if not df.empty:
-        gs.log_df(df, 'learning-data/gsheet_df.csv')
+        gs.log_df(df, os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), 'learning-data/gsheet_df.csv'))
         for i, row in df.iterrows():
           entry = list(row)
           num_tries = 0
@@ -121,6 +132,9 @@ def remove_nonalnum(_str):
 if __name__ == "__main__":
     # always run vocab first on a small df to generate known-vocab.csv if it doesn't exist for some reason!
     #make_cards_from_translation_gsheet()
+    logging.getLogger("urllib3").setLevel(logging.WARNING)
+    logging.getLogger("openai").setLevel(logging.WARNING)
+    logging.getLogger("hanzipy").setLevel(logging.WARNING)
     make_cards_from_translation_gsheet_indefinite(persistent=True)
     
 

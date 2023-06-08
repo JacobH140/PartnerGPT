@@ -39,7 +39,20 @@ def create_audio_dict(audio):
     return audio_dict
 
 
-def add_note(fields_dict, deck_name, model_name, audio_dict=None, tags=[]):
+def is_duplicate(field_name, field_value):
+    response = requests.post('http://localhost:8765', json={
+        'action': 'findNotes',
+        'version': 6,
+        'params': {
+            'query': f'{field_name}:"{field_value}"'
+        }
+    })
+    return len(response.json()['result']) > 0
+
+def add_note(fields_dict, deck_name, model_name, audio_dict=None, tags=[], dupe_check="简体字simplified"):
+    if is_duplicate(dupe_check, fields_dict[dupe_check]):
+        print("duplicate detected, not making card for ", fields_dict["简体字simplified"])
+        return
     return invoke('addNote',
         note = {
             "deckName": deck_name,

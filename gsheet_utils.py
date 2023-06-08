@@ -4,7 +4,6 @@ import gspread_dataframe as gd
 import os
 import json
 from auth_json import auth_json
-auth_json = json.loads(auth_json)
 
 
 def export_to_sheets(ws,df=None,mode='r'):
