@@ -105,7 +105,10 @@ def learn_get_initial_message(converse_state):
                 if topic in c['tags']:
                     print("topic: ", topic, " is in the tags of ", c)
                     scores[topics.index(topic)] += 1
-        st.session_state.converse_state.custom['topic'] = topics[scores.index(max(scores))]
+        if scores == [0]*len(topics):
+            st.session_state.converse_state.custom['topic'] = topics[randrange(len(topics))]
+        else:
+            st.session_state.converse_state.custom['topic'] = topics[scores.index(max(scores))]
         print("topics: ", topics)
         print("scores: ", scores)
     print("topic: ", st.session_state.converse_state.custom['topic'])
@@ -118,12 +121,12 @@ def learn_get_initial_message(converse_state):
     if len(topic_cards) < 20:
         topic_cards += [c for c in converse_state.custom['cards_converse'] if c not in topic_cards][:20-len(topic_cards)]
     
-    print("TOPIC CARD", topic_cards[0])
+    #print("TOPIC CARD", topic_cards[0])
     words = [c[converse_state.simpl_or_trad] for c in topic_cards]
 
     
 
-    initial_system = f"""You are a Chinese language partner, and we are going to discuss {st.session_state.converse_state.custom['topic']}. Please incorporate the following words into our conversation: {words}."""
+    initial_system = f"""You are a Chinese language partner (Difficulty: HSK3), and we are going to discuss {st.session_state.converse_state.custom['topic']}. Please incorporate the following words into our conversation: {words}."""
     initial_user = f"Go! Remember to, as we go, discuss the words {words}. You should **bolden** them in your messages."
     print("initial user: ", initial_user)
     converse_state.to_answer = {"text": [c[converse_state.simpl_or_trad] for c in topic_cards], "ids": [c["id"] for c in topic_cards]}
