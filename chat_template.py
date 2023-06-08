@@ -353,7 +353,7 @@ def on_proceed_button_click(nonUI_state):
     
     if f"{nonUI_state.name}_query" in st.session_state and not nonUI_state.administer_rating_form: # first part ensures this doesn't run when 'begin' is pressed, second part ensures 'next' behavior doesn't run while the rating form is being administered
 
-        st.session_state[f"{nonUI_state.name}_queried"] = f'{nonUI_state.name} — **next !**'
+        st.session_state[f"{nonUI_state.name}_queried"] = f'{nonUI_state.name} — **continue !**'
         nonUI_state.messages = nonUI_state.generate_bot_response_placeholder(query=st.session_state[f"{nonUI_state.name}_query"])
         clear_text(nonUI_state)
     elif not nonUI_state.administer_rating_form:
@@ -385,7 +385,7 @@ def chat(nonUI_state):
 
     if nonUI_state.generated: 
         if nonUI_state.on_automatic_rerun: # first part ensures this doesn't run when 'begin' is pressed, second part ensures 'next' behavior doesn't run while the rating form is being administered
-            st.session_state[f"{nonUI_state.name}_queried"] = '**next !**'
+            st.session_state[f"{nonUI_state.name}_queried"] = '**continue !**'
             nonUI_state.review_notif(f"**Submitted ratings!**")
             nonUI_state.messages = nonUI_state.generate_bot_response_placeholder(query=st.session_state[f"{nonUI_state.name}_queried"])
     
