@@ -71,8 +71,7 @@ st.set_page_config(
 #    return voc_words
 
 def learn_get_initial_message(converse_state):
-    if converse_state.custom['out_of_cards']:
-        return converse_state.messages
+
 
     if not converse_state.administer_rating_form and f"{converse_state.name}_query" not in st.session_state:
         idx = -1
@@ -81,11 +80,7 @@ def learn_get_initial_message(converse_state):
     else:
         idx = -1
 
-    if len(converse_state.custom['cards_converse']) < 2:
-        #converse_state.begin_disabled = True
-        converse_state.custom['out_of_cards'] += 1
-    else:
-        converse_state.begin_disabled = False
+  
 
   
 
@@ -184,13 +179,11 @@ if 'cards_converse' not in st.session_state.converse_state.custom:
 
 
 
-if 'out_of_cards' not in st.session_state.converse_state.custom:
-    st.session_state.converse_state.custom['out_of_cards'] = 0
+
 
 st.session_state.converse_state.to_create_prompt =  """List any words that I asked about or were otherwise new to me during this conversation in the format ['word1', 'word2', ...] and say NOTHING else. Make sure to include the entirety of our conversation."""
 st.session_state.converse_state.initial_message_func = learn_get_initial_message
 st.session_state.converse_state.initial_message_func_args = (st.session_state.converse_state,)
-st.session_state.converse_state.end_message = "There are no new words to learn right now! Head over to **Review** to review some words, or **Converse** to put things into practice..."
 
 chat_template.chat(st.session_state.converse_state)
 
