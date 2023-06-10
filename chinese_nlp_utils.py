@@ -27,6 +27,22 @@ def chatgpt_get_pinyin(word):
     #print("response: ", response)
     return ast.literal_eval(response)
 
+punctuation = r"""!?.;:。。()[]？。、；：-""" 
+def has_punctuation(s):  
+    return any([c in punctuation for c in s])
+
+def remove_spaces_punctuation(input_string):
+    # Remove spaces
+    #input_string_no_space_punc = input_string.replace(" ", "")
+    input_string_no_space_punc = input_string
+    for c in input_string_no_space_punc:
+        if c in punctuation:
+            input_string_no_space_punc = input_string_no_space_punc.replace(c, "")
+    
+    # Remove punctuation
+    input_string_no_space_punc = ' '.join(input_string_no_space_punc.split())
+    return input_string_no_space_punc
+
 def jieba_segmentize(text, remove_stopwords=True):
     res = jieba.lcut_for_search(text)
     if remove_stopwords:
@@ -169,7 +185,7 @@ def chatgpt_translate(english_simplified_or_traditional_text, context_messages=[
     trans_prompt = """Your job is to translate the provided text (which may be English, traditional Chinese, or simplified Chinese) into simplified Chinese. Respond with only the translated text. Return the text unchanged if it is provided as simplified Chinese."""
     temp_messages = [{"role":"system", "content":trans_prompt}, {"role":"user", "content":f"The text is {english_simplified_or_traditional_text}."}]
     context_messages.extend(temp_messages)
-    return utils.get_chatgpt_response(context_messages, temperature=0)
+    return  remove_spaces_punctuation(remove_non_chinese_from_string(utils.get_chatgpt_response(context_messages, temperature=0)))
 
 def chatgpt_batch_make_pinyin_from_simplified(simplified_text_list):
     # purposely don't include context_messages here, because this isn't a relevant part of the conversation

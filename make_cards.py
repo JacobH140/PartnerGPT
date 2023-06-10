@@ -22,6 +22,7 @@ import openai
 import ast
 import anki_utils
 import timeit
+import time
 import copy
 # import dictionary
 import hanzipy as hanzi
@@ -64,7 +65,7 @@ def get_image(search_query, tries_before_giving_up=3):
         urls.append(image_options)
     except IndexError:
         urls.append("")  # (gave up trying to find a valid img)
-    return urls
+    return urls[0]
 
 
 def generate_audio(audio_url, title, audio_loc):
@@ -141,24 +142,27 @@ def make_anki_notes_from_text(text, source, context_messages):
         context_messages = [] # set anything 'false-like' as an empty list
 
     # translate text from english or traditional into simplified Chinese if it's not already in simplified Chinese, to segmentize
-    simplified = cnlp.chatgpt_translate(text, context_messages)
+    simplified = cnlp.chatgpt_translate(text, context_messages).strip()
 
 
 
     #unknown_vocabs = find_unknown_vocabs([simplified])
 
     note_starts = cnlp.jieba_segmentize(simplified) # the bits of text that will be used to create Anki notes
-
+    print("SIMPLIFIED", simplified)
+    print("NOTE STARTS (updated)", note_starts) 
     if [simplified] == note_starts: # if the text is just a single word
         example_sentence = None
+        print("SIMPLIFIED IS NOTE STARTS")
     else:
         example_sentence = simplified
+        print(f"USING {simplified} AS EXAMPLE SENTENCE")
 
     for n in note_starts:
         #if n not in unknown_vocabs:
             print("making note (if one doesn't already exist) for  '", n, "'")
             start_time = timeit.default_timer()
-            fields_dict, tags_dict = generate_fields_and_tags(n, context_messages=copy.deepcopy(context_messages), example_sentence_given=example_sentence, gpt_model="gpt-3.5-turbo", source_tag=source, audio="url", audio_loc="/Users/jacobhume/PycharmProjects/ChineseAnki/translation-audio", add_image=False)
+            fields_dict, tags_dict = generate_fields_and_tags(n, context_messages=copy.deepcopy(context_messages), example_sentence_given=example_sentence, gpt_model="gpt-3.5-turbo", source_tag=source, audio="url", audio_loc="/Users/jacobhume/PycharmProjects/ChineseAnki/translation-audio", add_image=True)
             tags = tags_dict_to_tags_list(tags_dict)
             anki_utils.add_note(fields_dict, deck_name="中文", model_name="中文生词", tags=tags)
             print(f"note for '{n}' created in ", timeit.default_timer() - start_time, " seconds")
@@ -426,7 +430,7 @@ def chatgpt_make_trad_pinyin_from_simplified(fields_dict, keys_list):
         fields_dict[key[:-n]+"pinyin"] = batched_pinyin[i]
     return fields_dict
 
-def generate_fields_and_tags(text_in_english_or_simplified_or_traditional, gpt_model, source_tag, context_messages=[], example_sentence_given=None, audio=None, audio_loc=None, add_image=False):
+def generate_fields_and_tags(text_in_english_or_simplified_or_traditional, gpt_model, source_tag, context_messages=[], example_sentence_given=None, audio=None, audio_loc=None, add_image=True):
     # context messages are included when the function is invoked from within a conversation (e.g., during a PracticeGPT session)
 
 
@@ -529,6 +533,8 @@ Thanks!"""
     success = False
     first_user_prompt = f"""The word is {text_in_english_or_simplified_or_traditional}. Format your response as a python dictionary (where quoted strings are the dictionary's keys)."""
     context_messages.extend([{"role": "system", "content": f"{arbitrary_note_prompt}"},{"role": "user", "content": f"{first_user_prompt}"}])
+    tries = 0
+    sleep_seconds = 1
     while not success:
         try:
             first_response = utils.get_chatgpt_response(context_messages, temperature=0.7, model=gpt_model)
@@ -539,8 +545,16 @@ Thanks!"""
             fields_dict = ast.literal_eval(first_response)
             success = True
         except SyntaxError as e:
+            if tries > 2:
+                print("gave up on making a card for ", text_in_english_or_simplified_or_traditional)
+                return
             print(e)
             print("Trying again, cGPT gave incorrectly formatted output")
+            sleep_seconds *= 2
+            time.sleep(sleep_seconds)
+            tries += 1
+
+            
 
     if example_sentence_given is not None:
         fields_dict["例句example sentence simplified"] = example_sentence_given
@@ -578,7 +592,12 @@ Thanks!"""
 
     # add image
     if add_image:
-        fields_dict["图片/圖片image"] = get_image(query=fields_dict["简体字simplified"])
+        fields_dict["图片/圖片image"] = get_image(search_query=fields_dict["简体字simplified"])
+
+    # finally, remove unwarranted pinyin that chatgpt sometimes adds
+    for key in fields_dict.keys():
+        if "pinyin" not in key:
+            fields_dict[key] = cnlp.remove_pinyin_tone_marked_ish(fields_dict[key])
 
     return fields_dict, tags_dict
 
@@ -593,6 +612,7 @@ if __name__ == '__main__':
     logging.getLogger("urllib3").setLevel(logging.WARNING)
     logging.getLogger("openai").setLevel(logging.WARNING)
     logging.getLogger("hanzipy").setLevel(logging.WARNING)
+    logging.getLogger("selenium").setLevel(logging.WARNING)
 
     simplified = "喜欢"
     #test_fields_dict, test_tags_dict = generate_fields_and_tags(simplified, gpt_model="gpt-3.5-turbo", source_tag="make_cards.py_main", audio="url", audio_loc="/Users/jacobhume/PycharmProjects/ChineseAnki/translation-audio", add_image=False)

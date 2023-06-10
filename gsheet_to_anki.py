@@ -12,8 +12,9 @@ import logging
 import traceback
 
 # Run below code in terminal from the 中文 folder and Chinese conda environment to create executable to live in add-on folder:
-"""pyinstaller --hidden-import hanzipy --collect-all hanzipy  gsheet_to_anki.py"""
+"""pyinstaller --hidden-import hanzipy --collect-all hanzipy --hidden-import jieba --collect-all jieba  gsheet_to_anki.py"""
 # Then move the resulting dist folder to the add-on folder, and rename it to `gsheet_to_anki`
+# (then delete dist and build folders from this directory)
 
 def make_cards_from_translation_gsheet_indefinite(persistent=False):
 

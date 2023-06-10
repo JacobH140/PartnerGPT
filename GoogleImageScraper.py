@@ -5,8 +5,10 @@ Created on Sat Jul 18 13:01:02 2020
 @author: OHyic (mostly, along with my own edits)
 """
 #import selenium drivers
+from selenium.webdriver.common.by import By
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+
 
 #import helper libraries
 import time
@@ -82,8 +84,10 @@ class GoogleImageScraper():
         while self.number_of_images > count:
             try:
                 #find and click image
-                imgurl = self.driver.find_element_by_xpath('//*[@id="islrg"]/div[1]/div[%s]/a[1]/div[1]/img'%(str(indx)))
+                #imgurl = self.driver.find_element_by_xpath('//*[@id="islrg"]/div[1]/div[%s]/a[1]/div[1]/img'%(str(indx)))
+                imgurl = self.driver.find_element(By.XPATH, '//*[@id="islrg"]/div[1]/div[%s]/a[1]/div[1]/img'%(str(indx)))
                 imgurl.click()
+                print(imgurl)
                 missed_count = 0 
             except Exception:
                 #print("[-] Unable to click this photo.")
@@ -95,8 +99,9 @@ class GoogleImageScraper():
             try:
                 #select image from the popup
                 time.sleep(1)
-                class_names = ["n3VNCb"]
-                images = [self.driver.find_elements_by_class_name(class_name) for class_name in class_names if len(self.driver.find_elements_by_class_name(class_name)) != 0 ][0]
+                class_names = ["r48jcc"]
+                print(class_names)
+                images = [self.driver.find_elements(By.CLASS_NAME, class_name) for class_name in class_names if len(self.driver.find_elements(By.CLASS_NAME, class_name)) != 0 ][0]
                 for image in images:
                     #only download images that starts with http
                     src_link = image.get_attribute("src")
@@ -107,8 +112,8 @@ class GoogleImageScraper():
                         count +=1
                         break
             except Exception as Ex:
-                #print(Ex)
-                #print(traceback.print_exc())
+                print(Ex)
+                print(traceback.print_exc())
                 print("[INFO] Unable to get link")
                 break
 
@@ -116,7 +121,7 @@ class GoogleImageScraper():
                 #scroll page to load next image
                 if(count%3==0):
                     self.driver.execute_script("window.scrollTo(0, "+str(indx*60)+");")
-                element = self.driver.find_element_by_class_name("mye4qd")
+                element = self.driver.find_element(By.CLASS_NAME, "mye4qd")
                 element.click()
                 print("[INFO] Loading next page")
                 time.sleep(3)
