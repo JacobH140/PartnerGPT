@@ -151,16 +151,19 @@ def make_anki_notes_from_text(text, source, context_messages):
     note_starts = cnlp.jieba_segmentize(simplified) # the bits of text that will be used to create Anki notes
     print("SIMPLIFIED", simplified)
     print("NOTE STARTS (updated)", note_starts) 
-    if [simplified] == note_starts: # if the text is just a single word
+    if [simplified] == note_starts or len(simplified)<5: # if the text is just a single word
         example_sentence = None
         print("SIMPLIFIED IS NOTE STARTS")
-    else:
+    else:   
         example_sentence = simplified
         print(f"USING {simplified} AS EXAMPLE SENTENCE")
 
     for n in note_starts:
         #if n not in unknown_vocabs:
-            print("making note (if one doesn't already exist) for  '", n, "'")
+            if anki_utils.is_duplicate("简体字simplified", simplified):
+                print("note for ", simplified, " already exists, so not invoking chatgpt and moving on...")
+                continue
+            print("making note for  '", n, "'")
             start_time = timeit.default_timer()
             fields_dict, tags_dict = generate_fields_and_tags(n, context_messages=copy.deepcopy(context_messages), example_sentence_given=example_sentence, gpt_model="gpt-3.5-turbo", source_tag=source, audio="url", audio_loc="/Users/jacobhume/PycharmProjects/ChineseAnki/translation-audio", add_image=True)
             tags = tags_dict_to_tags_list(tags_dict)

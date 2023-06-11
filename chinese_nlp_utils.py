@@ -27,7 +27,7 @@ def chatgpt_get_pinyin(word):
     #print("response: ", response)
     return ast.literal_eval(response)
 
-punctuation = r"""!?.;:。。()[]？。、；：-""" 
+punctuation = r"""!?.;:。。()[]？。、；："`'/<>,=$~‘-！°^*• 『""" 
 def has_punctuation(s):  
     return any([c in punctuation for c in s])
 
