@@ -42,7 +42,7 @@ def make_cards_from_translation_gsheet_indefinite(persistent=False):
                             wks.delete_rows(2, 2)
                             continue
                         try:
-                            mkc.make_anki_notes_from_text(text=row[0], source=row[1], context_messages=row[2]) # Text (in either language, simpl or trad), Source, context_messages data, respectively
+                            mkc.make_anki_notes_from_text(texts=row[0], source=row[1], context_messages=row[2]) # Text (in either language, simpl or trad), Source, context_messages data, respectively
                             success = True
                             entry[3] = datetime.now().strftime("%Y-%m-%d %H:%M:%S") # log with the current time
                             _, log_wks = gs.access_gsheet_by_url(url=url, sheet_name='Created')
@@ -61,12 +61,14 @@ def make_cards_from_translation_gsheet_indefinite(persistent=False):
                                 seconds_to_sleep *= 2
                                 if num_tries > 5:
                                     raise Exception(f'Error on row of gsheet, tried and failed {num_tries} times:\n---\n {e} \n---\n, text was {row[0]}. Slept for up to {seconds_to_sleep} seconds each time.')
-                                
+                      
         except google.auth.exceptions.TransportError as e:
            print(e)
            print("Probably not connected to WiFi, no issue")
            time.sleep(100)
            continue
+
+        
         
 
 

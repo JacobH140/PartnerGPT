@@ -264,8 +264,8 @@ def rating_form(nonUI_state, to_answer=defaultdict(list), to_create_prompt=None)
         response = get_chatgpt_response_enforce_python_formatting(nonUI_state.prev_messages, response_on_fail = "[]", extra_prompt="What you are writing will be interpreted directly as Python code. So, make sure to give your response as a (possibly empty) LIST OF STRINGS, and nothing but a list of strings. No markdown.", start_temperature=0.5, model=nonUI_state.model)
         update_chat(nonUI_state.prev_messages, "assistant", response)
         nonUI_state.to_create_candidates = ast.literal_eval(response)
-    else:
-        nonUI_state.to_create_candidates = []
+    #else:
+    #    nonUI_state.to_create_candidates = []
 
 
     with st.form('Rating Form', clear_on_submit=False):
@@ -292,9 +292,9 @@ def rating_form(nonUI_state, to_answer=defaultdict(list), to_create_prompt=None)
         if nonUI_state.form_submit_button_clicked:
             nonUI_state.to_create_candidates = []
             nonUI_state.to_answer["text"] = []; nonUI_state.to_answer["ids"] = []
-        
 
-
+        print("RETURNING FROM RATING FORM FUNC, CREATE ROWS ARE", create_rows)
+        print("RETURNING FROM RATING FORM FUNC, ANSWER ROWS ARE", answer_rows)
         return st.form_submit_button('Submit', on_click=on_submit), ratings, answer_rows, create_rows
 
 def ratings_widget(state_object):
@@ -397,10 +397,12 @@ def chat(nonUI_state):
 
 
         if nonUI_state.form_submit_button_clicked and not nonUI_state.on_automatic_rerun: # note that at all times AT MOST one of form_submit_button_clicked, administer_rating_form, and on_automatic_rerun can be True
+            print("CREATE ROWS BEFORE THINGS ARE FILTERED OUT", create_rows)
             create_rows = [row for row in create_rows if row[1] == "Yes"]
-            create_rows = [[row[0], nonUI_state.name] for row in create_rows]
+            create_rows = [[row[0], nonUI_state.name] for row in create_rows] # subsequent filtering
             answer_rows = [row for row in answer_rows if row[1] != "Not Reviewed"]
             
+            print("SHOULD BE CREATING ROWS", create_rows)
             gs.add_rows_to_gsheet(create_rows, "To Create")
             gs.add_rows_to_gsheet(answer_rows, "Answered Cards Cache")
             print("updated 'to create' and 'review cards cache' in gsheet")

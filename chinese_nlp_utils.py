@@ -15,6 +15,7 @@ import ast
 import jieba
 import logging
 from unidecode import unidecode
+import copy
 
 def chinese_stopwords():
     return ["、","。","〈","〉","《","》","一","一个", ".", ",", "!", ";", ":"] 
@@ -44,7 +45,8 @@ def remove_spaces_punctuation(input_string):
     return input_string_no_space_punc
 
 def jieba_segmentize(text, remove_stopwords=True):
-    res = jieba.lcut_for_search(text)
+    c = copy.copy(text)
+    res = jieba.lcut_for_search(c)
     if remove_stopwords:
         res = [r for r in res if r not in chinese_stopwords()]
     return res
@@ -185,7 +187,16 @@ def chatgpt_translate(english_simplified_or_traditional_text, context_messages=[
     trans_prompt = """Your job is to translate the provided text (which may be English, traditional Chinese, or simplified Chinese) into simplified Chinese. Respond with only the translated text. Return the text unchanged if it is provided as simplified Chinese."""
     temp_messages = [{"role":"system", "content":trans_prompt}, {"role":"user", "content":f"The text is {english_simplified_or_traditional_text}."}]
     context_messages.extend(temp_messages)
-    return  remove_spaces_punctuation(remove_non_chinese_from_string(utils.get_chatgpt_response(context_messages, temperature=0)))
+    r = utils.get_chatgpt_response(context_messages, temperature=0)
+    return r, remove_spaces_punctuation(remove_non_chinese_from_string(r, keep_punctuation=True))
+
+def chatgpt_translate_to_english(english_simplified_or_traditional_text, context_messages=[]):
+    # purposely don't include context_messages here, because this isn't a relevant part of the conversation
+    trans_prompt = """Your job is to translate the provided text (which may be English, traditional Chinese, or simplified Chinese) into English. Respond with only the translated text. Return the text unchanged if it is provided as English."""
+    temp_messages = [{"role":"system", "content":trans_prompt}, {"role":"user", "content":f"The text is {english_simplified_or_traditional_text}."}]
+    context_messages.extend(temp_messages)
+    r = utils.get_chatgpt_response(context_messages, temperature=0)
+    return r
 
 def chatgpt_batch_make_pinyin_from_simplified(simplified_text_list):
     # purposely don't include context_messages here, because this isn't a relevant part of the conversation
@@ -199,8 +210,12 @@ def chatgpt_make_pinyin_from_simplified(simplified_text):
     temp_messages = [{"role":"system", "content":pinyin_prompt}, {"role":"user", "content":f"The text is {simplified_text}."}]
     return utils.get_chatgpt_response(temp_messages, temperature=0)
 
-def remove_non_chinese_from_string(text):
-   return  ''.join([o for o in text if re.search(u'[\u4e00-\u9fff]', o)])  # only keep non chinese entries
+def remove_non_chinese_from_string(text, keep_punctuation=False):
+   if not keep_punctuation:
+        return  ''.join([o for o in text if re.search(u'[\u4e00-\u9fff]', o)])  # only keep non chinese entries
+   else: 
+        return ''.join([o for o in text if re.search(u'[\u4e00-\u9fff]', o) or o in punctuation])
+
 
 
 def split_text(text):
@@ -215,6 +230,8 @@ def is_pinyin_tone_marked(s):
 
 def remove_pinyin_tone_marked_ish(text):
     # Split the text into words
+    print("remove_pinyin_tone_marked_ish input is ", text)
+
     words = text.split()
 
     # Remove words with diacritics, but preserve chinese characters

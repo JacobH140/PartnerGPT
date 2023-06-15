@@ -115,7 +115,7 @@ def find_unknown_vocab(simplified, known_vocab_csv='learning-data/known-vocab.cs
     return output
 
     
-def make_anki_notes_from_text(text, source, context_messages):
+def make_anki_notes_from_text(texts, source, context_messages):
     """Inputs:
         text_in_english_or_simplified_or_traditional (3 categories): a string of text in English, simplified Chinese, or traditional Chinese, such as one of...
         1- English word ("shirt")              
@@ -141,44 +141,73 @@ def make_anki_notes_from_text(text, source, context_messages):
     if not context_messages:
         context_messages = [] # set anything 'false-like' as an empty list
 
-    # translate text from english or traditional into simplified Chinese if it's not already in simplified Chinese, to segmentize
-    simplified = cnlp.chatgpt_translate(text, context_messages).strip()
+    #text_sections_prompt = [{"role":"system", "content": """Segment the provided text into coherent sentences, ensuring to keep English as English and Chinese as Chinese. also, remove any times and dates from the text. If there are typos in the text, try to correct them. Structure your response to be a Python list (no backticks/markdown, though)."""}, {"role":"user", "content": f"""{texts}"""}]
+    #text_sections = utils.get_chatgpt_response_enforce_python_formatting(text_sections_prompt, response_on_fail = texts, extra_prompt="Make sure to give your response as a (possibly empty) LIST OF STRINGS, and nothing but a list of strings.", start_temperature=0.5)
+    #print("text sections to be used are ", text_sections)
+
+    for text in [texts]: # only has one element... above functionality is to be explored as necessary later
 
 
 
-    #unknown_vocabs = find_unknown_vocabs([simplified])
 
-    note_starts = cnlp.jieba_segmentize(simplified) # the bits of text that will be used to create Anki notes
-    print("SIMPLIFIED", simplified)
-    print("NOTE STARTS (updated)", note_starts) 
-    if [simplified] == note_starts or len(simplified)<5: # if the text is just a single word
-        example_sentence = None
-        print("SIMPLIFIED IS NOTE STARTS")
-    else:   
-        example_sentence = simplified
-        print(f"USING {simplified} AS EXAMPLE SENTENCE")
+        # translate text from english or traditional into simplified Chinese if it's not already in simplified Chinese, to segmentize
+        sentence, simplified = cnlp.chatgpt_translate(text, context_messages); sentence=sentence.strip(); simplified=simplified.strip()
 
-    for n in note_starts:
-        #if n not in unknown_vocabs:
-            if anki_utils.is_duplicate("简体字simplified", simplified):
-                print("note for ", simplified, " already exists, so not invoking chatgpt and moving on...")
-                continue
-            print("making note for  '", n, "'")
-            start_time = timeit.default_timer()
-            fields_dict, tags_dict = generate_fields_and_tags(n, context_messages=copy.deepcopy(context_messages), example_sentence_given=example_sentence, gpt_model="gpt-3.5-turbo", source_tag=source, audio="url", audio_loc="/Users/jacobhume/PycharmProjects/ChineseAnki/translation-audio", add_image=True)
-            tags = tags_dict_to_tags_list(tags_dict)
-            anki_utils.add_note(fields_dict, deck_name="中文", model_name="中文生词", tags=tags)
-            print(f"note for '{n}' created in ", timeit.default_timer() - start_time, " seconds")
+
+
+
+        #unknown_vocabs = find_unknown_vocabs([simplified])
+
+
+        note_starts = cnlp.jieba_segmentize(simplified) # the bits of text that will be used to create Anki notes
+        print("SENTENCE: ", sentence)
+        print("SIMPLIFIED", simplified)
+
+
+        print("NOTE STARTS (updated)", note_starts) 
+        if [simplified] == note_starts or len(simplified)<5: # if the text is just a single word
+            example_sentence = None
+            print("SIMPLIFIED IS NOTE STARTS")
+        else:   
+            example_sentence = sentence
+            print(f"USING {sentence} AS EXAMPLE SENTENCE")
+
+        for n in note_starts:
+            #if n not in unknown_vocabs:
+                #sanity_check_prompt = [{"role":"user", "content": "I am going to give you a string, and you are going to tell me if it is degenerate. For example, words and sentences are NOT degenerate, but isolated numbers, punctuation, and empty spaces are. Reply with 'True' or 'False'"}, {"role":"user", "content": f"The string is ' {n} ' "}]
+                #degenerate_text = utils.get_chatgpt_response_enforce_python_formatting(sanity_check_prompt, response_on_fail = texts, extra_prompt="Make sure to give your response as merely True or False, with no punctuation or anything.", start_temperature=0.5)
+                #if degenerate_text:
+                #    print("degenerate text: '", text, "', not making a card")
+                #    continue
+                #else:
+                #    print("nondegenerate text: '", text, "' will make a card")
+
+                time.sleep(0.1)
+                if anki_utils.is_duplicate("简体字simplified", n):
+                    print("note for ", n, " already exists, so not invoking chatgpt and moving on...")
+                    continue
+                print("making note for  '", n, "'")
+                start_time = timeit.default_timer()
+                fields_dict, tags_dict = generate_fields_and_tags(n, context_messages=copy.deepcopy(context_messages), example_sentence_given=example_sentence, gpt_model="gpt-3.5-turbo", source_tag=source, audio="url", audio_loc="/Users/jacobhume/PycharmProjects/ChineseAnki/translation-audio", add_image=True)
+                tags = tags_dict_to_tags_list(tags_dict)
+                anki_utils.add_note(fields_dict, deck_name="中文", model_name="中文生词", tags=tags)
+                print(f"note for '{n}' created in ", timeit.default_timer() - start_time, " seconds")
 
 
 def remove_irrelevant_phonetic_info_helper(comp_phon_list):
+    print("removing irrelevant phonetic info from ", comp_phon_list)
     """This function takes a list of tuples of the form (character, phonetic_info) and removes the radicals that bear no relation to character"""
-    for entry in comp_phon_list:
-        phonetic_info = entry[1]
-        regularity = phonetic_info[2]
-        if "no regularity" in regularity:
-            comp_phon_list.remove(entry)
-    return comp_phon_list
+    try:
+        for entry in comp_phon_list:
+            phonetic_info = entry[1]
+            regularity = phonetic_info[2]
+            if "no regularity" in regularity:
+                comp_phon_list.remove(entry)
+        return comp_phon_list
+    except Exception as e:
+        print(e)
+        print("...so, returning comp phon list as is")
+        return comp_phon_list
 
 def format_and_sort_radical_info(data):
     plaintext_list = ""
@@ -320,7 +349,7 @@ def chatgpt_pos_and_phrase_type_helper(text, context_messages):
     context_messages_copy = copy.deepcopy(context_messages)
     pos_system_prompt = """Your job is now to identify all parts-of-speech throughout the following text. Keep in mind that some words in Chinese can be multiple parts-of-speech at once, though you should not include duplicates in your response. Remember to format your answer as a Python list of strings, all lowercase and with no duplicate entries."""
     context_messages_copy.extend([{"role":"system", "content":pos_system_prompt}, {"role":"user", "content":f"The text is {text}. Remember to format your answer as a Python list of strings."}])
-    pos_response = utils.get_chatgpt_response_enforce_python_formatting(context_messages_copy, response_on_fail="['ChatGPT gave incorrectly formatted output']")
+    pos_response = utils.get_chatgpt_response_enforce_python_formatting(context_messages_copy, response_on_fail="['ChatGPT gave incorrectly formatted output']", extra_prompt="Remember to format your answer as a (possibly singleton) Python list of strings.")
     context_messages_copy = utils.update_chat(context_messages_copy, "assistant", pos_response)
     phrase_system_prompt = "Your job is now to identify the what type of syntactic phrase the following text is. The options are CP, TP, VP, NP, PP, AdjP, AdvP, XP, X. Respond ONLY with your answer. If you think the text is not a phrase, respond with 'not_a_phrase'."
     context_messages_copy.extend([{"role":"system", "content":phrase_system_prompt}, {"role":"user", "content":f"The text is {text}"}])
@@ -561,7 +590,7 @@ Thanks!"""
 
     if example_sentence_given is not None:
         fields_dict["例句example sentence simplified"] = example_sentence_given
-        fields_dict["例句example sentence translation"] = cnlp.chatgpt_translate(example_sentence_given)
+        fields_dict["例句example sentence translation"] = cnlp.chatgpt_translate_to_english(example_sentence_given)
 
     fields_dict = chatgpt_make_trad_pinyin_from_simplified(fields_dict, ["例句example sentence simplified", "related words simplified", "同义词/同義詞synonyms simplified", "反义词/反義詞antonyms simplified", "量词/量詞classifier(s) simplified", "usages simplified"])
 
@@ -599,8 +628,9 @@ Thanks!"""
 
     # finally, remove unwarranted pinyin that chatgpt sometimes adds
     for key in fields_dict.keys():
-        if "pinyin" not in key:
-            fields_dict[key] = cnlp.remove_pinyin_tone_marked_ish(fields_dict[key])
+        if "pinyin" not in key and type(fields_dict[key]) is str:
+            fields_dict[key] = cnlp.remove_pinyin_tone_marked_ish(fields_dict[key]) 
+            
 
     return fields_dict, tags_dict
 
@@ -617,7 +647,7 @@ if __name__ == '__main__':
     logging.getLogger("hanzipy").setLevel(logging.WARNING)
     logging.getLogger("selenium").setLevel(logging.WARNING)
 
-    simplified = "喜欢"
+    simplified = "一个哥哥、两个妹妹和我。李友，你家有几口人？"
     #test_fields_dict, test_tags_dict = generate_fields_and_tags(simplified, gpt_model="gpt-3.5-turbo", source_tag="make_cards.py_main", audio="url", audio_loc="/Users/jacobhume/PycharmProjects/ChineseAnki/translation-audio", add_image=False)
     #test_tags = tags_dict_to_tags_list(test_tags_dict)
     #anki_utils.add_note(test_fields_dict, deck_name="中文", model_name="中文生词", tags=test_tags)
