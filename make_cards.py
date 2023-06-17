@@ -188,7 +188,7 @@ def make_anki_notes_from_text(texts, source, context_messages):
                     continue
                 print("making note for  '", n, "'")
                 start_time = timeit.default_timer()
-                fields_dict, tags_dict = generate_fields_and_tags(n, context_messages=copy.deepcopy(context_messages), example_sentence_given=example_sentence, gpt_model="gpt-3.5-turbo", source_tag=source, audio="url", audio_loc="/Users/jacobhume/PycharmProjects/ChineseAnki/translation-audio", add_image=True)
+                fields_dict, tags_dict = generate_fields_and_tags(n, context_messages=copy.deepcopy(context_messages), example_sentence_given=example_sentence, gpt_model="gpt-3.5-turbo-16k", source_tag=source, audio="url", audio_loc="/Users/jacobhume/PycharmProjects/ChineseAnki/translation-audio", add_image=True)
                 tags = tags_dict_to_tags_list(tags_dict)
                 anki_utils.add_note(fields_dict, deck_name="中文", model_name="中文生词", tags=tags)
                 print(f"note for '{n}' created in ", timeit.default_timer() - start_time, " seconds")
@@ -478,7 +478,7 @@ def generate_fields_and_tags(text_in_english_or_simplified_or_traditional, gpt_m
 - "简体字simplified" : the simplified Chinese word.
 - "繁体字traditional" : the traditional Chinese word.
 - "英文english" : the English translation. Can be as long as you want for nuanced words, but be concise and clear.
-- "simplification process (GPT estimate)" : the process of simplifying the traditional Chinese to the simplified Chinese.
+- "simplification process (GPT estimate)" : the process of simplifying the traditional Chinese characters into their simplified Chinese characters.
 - "vocab pinyin" : the pinyin of the Chinese word.
 - "etymology — GPT conjecture" : etymology of the whole word... how do the individual characters' meaning contribute to the whole word's meaning? You may choose to analyze one or both of the simplified and traditional versions. 
 - "categories of characters — GPT conjecture" : The type of each character involved, perhaps one of 象形字,  形声字, 指事字,  会意字,  转注字, 假借字. Explain your answer. If you claim a character is a 形声字, you should check that the phonetic component matches the pinyin you provided before. If not, it is not 形声字 and you should think again about this!
@@ -626,10 +626,11 @@ Thanks!"""
     if add_image:
         fields_dict["图片/圖片image"] = get_image(search_query=fields_dict["简体字simplified"])
 
-    # finally, remove unwarranted pinyin that chatgpt sometimes adds
+    # finally, remove unwarranted pinyin that chatgpt sometimes adds, and make sure everything is string (otherwise ankiconnect breaks)!
     for key in fields_dict.keys():
         if "pinyin" not in key and type(fields_dict[key]) is str:
             fields_dict[key] = cnlp.remove_pinyin_tone_marked_ish(fields_dict[key]) 
+        fields_dict[key] = str(fields_dict[key])
             
 
     return fields_dict, tags_dict

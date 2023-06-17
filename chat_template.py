@@ -242,7 +242,7 @@ def initialize_app(heading, subheading):
         st.session_state.state = SessionNonUIState()
 
     if not st.session_state.state.chatting_has_begun:
-        model = st.selectbox("Select a model", ("gpt-3.5-turbo", "gpt-4"))
+        model = st.selectbox("Select a model", ("gpt-3.5-turbo-16k", "gpt-4"))
         st.session_state.state.model = model
     
     return st.session_state.state

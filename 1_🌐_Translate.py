@@ -48,7 +48,7 @@ if 'translate_state' not in st.session_state:
     st.session_state.translate_state = chat_template.SessionNonUIState(name="translate_state")
     
 if not st.session_state.translate_state.chatting_has_begun:
-    model = st.selectbox("Select a model", ("gpt-3.5-turbo", "gpt-4"))
+    model = st.selectbox("Select a model", ("gpt-3.5-turbo-16k", "gpt-4"))
     st.session_state.translate_state.simpl_or_trad = st.selectbox("Simplified or Traditional", ("Simplified", "Traditional"))
     st.session_state.translate_state.model = model
 else:

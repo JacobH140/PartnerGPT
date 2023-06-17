@@ -141,7 +141,7 @@ st.session_state.review_state.next = next
 st.session_state.review_state.next_func_args = (st.session_state.review_state,)
     
 if not st.session_state.review_state.chatting_has_begun:
-    model = st.selectbox("Select a model", ("gpt-3.5-turbo", "gpt-4"))
+    model = st.selectbox("Select a model", ("gpt-3.5-turbo-16k", "gpt-4"))
     st.session_state.review_state.simpl_or_trad = st.selectbox("Simplified or Traditional", ("简体字simplified", "繁体字traditional"))
     st.session_state.review_state.model = model
     

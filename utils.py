@@ -20,7 +20,7 @@ def get_initial_message(vocab_word, aux_words, system_prompt=None, user_prompt=N
         ]
     return messages
 
-def get_chatgpt_response(messages, temperature, model="gpt-3.5-turbo", verbose=True, max_tries = 10):
+def get_chatgpt_response(messages, temperature, model="gpt-3.5-turbo-16k", verbose=True, max_tries = 10):
     #print("model: ", model)
     sleep_seconds = 2
     try:
@@ -62,7 +62,7 @@ def get_chatgpt_response(messages, temperature, model="gpt-3.5-turbo", verbose=T
     time.sleep(2) # to avoid overloading with requests
     return response['choices'][0]['message']['content']
 
-def get_chatgpt_response_enforce_python_formatting(messages, response_on_fail, formatting_restriction="valid Python", extra_prompt=None, start_temperature=0, end_temperature=1, step=0.1, model="gpt-3.5-turbo"):
+def get_chatgpt_response_enforce_python_formatting(messages, response_on_fail, formatting_restriction="valid Python", extra_prompt=None, start_temperature=0, end_temperature=1, step=0.1, model="gpt-3.5-turbo-16k"):
     # returns whatever response_on_fail is if chatgpt is not working
     # extra_prompt gives a chance for the user to remind the bot how the output formatting should be organized
     # formatting_restriction is either "valid Python" or a user-provided bool-returning function
@@ -91,7 +91,7 @@ def get_chatgpt_response_enforce_python_formatting(messages, response_on_fail, f
                 return str(response_on_fail)
     return response
 
-def get_chatgpt_response_stream_chunk(messages, model="gpt-3.5-turbo"):
+def get_chatgpt_response_stream_chunk(messages, model="gpt-3.5-turbo-16k"):
     response = openai.ChatCompletion.create(
     model=model,
     messages=messages,
