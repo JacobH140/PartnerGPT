@@ -192,10 +192,17 @@ def chatgpt_translate(english_simplified_or_traditional_text, context_messages=[
 
 def chatgpt_translate_to_english(english_simplified_or_traditional_text, context_messages=[]):
     # purposely don't include context_messages here, because this isn't a relevant part of the conversation
-    trans_prompt = """Your job is to translate the provided text (which may be English, traditional Chinese, or simplified Chinese) into English. Respond with only the translated text. Return the text unchanged if it is provided as English."""
+    trans_prompt = """Your job is to translate the provided text (which may be English, traditional Chinese, or simplified Chinese) into English. Respond with only the translated text (e.g., don't say 'the text is...' etc). Return the text unchanged if it is provided as English."""
     temp_messages = [{"role":"system", "content":trans_prompt}, {"role":"user", "content":f"The text is {english_simplified_or_traditional_text}."}]
     context_messages.extend(temp_messages)
-    r = utils.get_chatgpt_response(context_messages, temperature=0)
+    try:
+        r = utils.get_chatgpt_response(context_messages, temperature=0)
+    except Exception as e:
+        print(e)
+        print("ERROR IN CGPT TRANSLATE TO ENGLISH... MESSAGES ARE", context_messages)
+        # print traceback
+        import traceback; traceback.print_exc()
+        raise e
     return r
 
 def chatgpt_batch_make_pinyin_from_simplified(simplified_text_list):

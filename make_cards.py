@@ -116,7 +116,7 @@ def find_unknown_vocab(simplified, known_vocab_csv='learning-data/known-vocab.cs
 
     
 def make_anki_notes_from_text(texts, source, context_messages):
-    """Inputs:
+    """Inputs (below is not quite accurate anymore):
         text_in_english_or_simplified_or_traditional (3 categories): a string of text in English, simplified Chinese, or traditional Chinese, such as one of...
         1- English word ("shirt")              
         1- Simplified Chinese word ("衬衫")
@@ -294,7 +294,7 @@ def decomposition_info_helper(fields_dict):
     return fields_dict
 
 def mnemonic_helper(fields_dict, gpt_model):
-    decomposition_mnemonic_prompt = f"""Write a memnonic for the each of the characters {fields_dict["简体字simplified"]} by using some/all of the meanings of their constituent radicals and, if relevant, phonetic regularities. The means of the radicals are {fields_dict["radicals (simplified)"]}. The phonetic regularities are {remove_irrelevant_phonetic_info_helper(ast.literal_eval(fields_dict["component decomposition and phonetic regularity (simplified)"]))} Then insert a paragraph break. Then, proceed to do the same thing but for traditional: Write a memnonic for the each of the characters {fields_dict["繁体字traditional"]} by using the meanings of their constituent radicals: {fields_dict["radicals (traditional)"]}. The phonetic regularities for traditional are  {remove_irrelevant_phonetic_info_helper(ast.literal_eval(fields_dict["component decomposition and phonetic regularity (simplified)"]))}. Do not forget to include the paragraph break between the simplified and traditional mnemonics!"""
+    decomposition_mnemonic_prompt = f"""Write a memnonic for the each of the characters {fields_dict["简体字simplified"]} by using some/all of the meanings of their constituent radicals and, if relevant, phonetic regularities. The meanings of the radicals are {fields_dict["radicals (simplified)"]}. The phonetic regularities are {remove_irrelevant_phonetic_info_helper(ast.literal_eval(fields_dict["component decomposition and phonetic regularity (simplified)"]))} Then insert a paragraph break. Then, proceed to do the same thing but for traditional: Write a memnonic for the each of the characters {fields_dict["繁体字traditional"]} by using the meanings of their constituent radicals: {fields_dict["radicals (traditional)"]}. The phonetic regularities for traditional are  {remove_irrelevant_phonetic_info_helper(ast.literal_eval(fields_dict["component decomposition and phonetic regularity (simplified)"]))}. Do not forget to include the paragraph break between the simplified and traditional mnemonics!"""
     # prompt is long; so we DON'T add it to the context messages
     #context_messages.append({"role": "user", "content": f"{decomposition_mnemonic_prompt}"}) 
     msgs = [{"role":"system", "content":decomposition_mnemonic_prompt}]
@@ -368,7 +368,7 @@ def chatgpt_pos_and_phrase_type_helper(text, context_messages):
 
 def add_all_chinese_audio_to_note(fields_dict, url_stem, audio_loc):
     def prepare(string_to_sonify, url_stem=url_stem, audio_loc=audio_loc):
-        url_suffix = quote(cnlp.remove_non_chinese_from_string(string_to_sonify))
+        url_suffix = quote(cnlp.remove_non_chinese_from_string(string_to_sonify, keep_punctuation=True))
         if url_suffix:
             audio_url = url_stem + url_suffix
             anki_audio = str([f"[sound:{os.path.basename(generate_audio(a_url, a_url.split('=')[-1], audio_loc))}]" for a_url in [audio_url]][0])

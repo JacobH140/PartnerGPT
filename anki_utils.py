@@ -49,8 +49,18 @@ def is_duplicate(field_name, field_value):
     })
     return len(response.json()['result']) > 0
 
+def is_duplicate_in_deck(field_name, field_value, deck_name):
+    response = requests.post('http://localhost:8765', json={
+        'action': 'findNotes',
+        'version': 6,
+        'params': {
+            'query': f'deck:"{deck_name}" {field_name}:"{field_value}"'
+        }
+    })
+    return len(response.json()['result']) > 0
+
 def add_note(fields_dict, deck_name, model_name, audio_dict=None, tags=[], dupe_check="简体字simplified"):
-    if is_duplicate(dupe_check, fields_dict[dupe_check]):
+    if dupe_check is not False and is_duplicate(dupe_check, fields_dict[dupe_check]):
         print("duplicate detected, not making card for ", fields_dict["简体字simplified"])
         return
     return invoke('addNote',
