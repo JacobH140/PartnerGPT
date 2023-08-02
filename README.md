@@ -51,7 +51,7 @@ Numerous special tags and fields exist from which cards may be organized. See [f
 ## Creating Flashcards
 (Ensure the Anki add-on is installed first.)
 
-**On iOS.** The [iOS Shortcut](https://support.apple.com/guide/shortcuts/welcome/ios) provides translations and pinyin for Chinese or English input. These translations are just meant to be heuristics; they do not actually make it into the end card. Instead, the _input_ is uploaded to the learners PartnerGPT Google Sheet along with source and time of upload. After a small amount of time, the Anki add-on will make a flashcard for each word (and sometimes phrase) in the input for which it has not made a flashcard before. If the input is sufficiently long, it will use that sentence as the flashcard's example sentence.
+**On iOS.** The [iOS Shortcut](https://support.apple.com/guide/shortcuts/welcome/ios) provides translations and pinyin for Chinese or English input. These translations are just meant to be heuristics; they do not actually make it into the end card. Instead, the _input_ is uploaded to the learners PartnerGPT Google Sheet along with source of upload. After a small amount of time, the Anki add-on will make a flashcard for each word (and sometimes phrase) in the input for which it has not made a flashcard before. If the input is sufficiently long, it will use that sentence as the flashcard's example sentence.
 
 Accepted input methods are
 - Typed text
@@ -63,13 +63,25 @@ Accepted input methods are
 - Speak English
 - Speak Chinese (CN)
 - Speak Chinese (TW)
-- Conversation with PartnerGPT.
+- Talk with PartnerGPT (See below).
 
-**On Mac.**
+**On Mac.** The [Alfred Workflow](https://www.alfredapp.com/) provides real-time translation heuristics of typed input. Upon pressing of the return key, the input gets sent to the PartnerGPT Google Sheet. From there it works the same as **iOS.**
+
+
+https://github.com/JacobH140/PartnerGPT/assets/71049464/a80aa873-8443-4681-a921-49ce2e1d755e
+
+Additionally, a second Alfred Workflow exists (triggered as 'te' rather than 'tr') for parsing screenshots.
+
+
+https://github.com/JacobH140/PartnerGPT/assets/71049464/2e8c0b54-1934-4374-851d-443ca909f9b1
+
+
 
 **From PartnerGPT Conversations.**
+In any conversation with PartnerGPT, pressing the 'next' button will prompt the AI to review the conversation since the last time 'next' was pressed and find text which it thinks 'should be flashcarded'. A common example of text that 'gets flashcarded' in this manner would be when a learner doesn't recognize a character in one of ChatGPT's sentences and asked about it.
 
 **From Google Sheets (Batch Creation)**
+It is also common to manually fill in PartnerGPT Google Sheet entries. This is especially useful when inputting vocabulary for a new textbook chapter. TIP: take advantage of the 'source' column! For example, if inputting textbook vocabulary, fill in the source column with the textbook chapter— that way, you can customize to study *just those words* later.
 
 
 ## Reviewing Flashcards in Anki
