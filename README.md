@@ -42,6 +42,9 @@ To this end, a ChatGPT interface is provided which provides in-depth translation
 
 
 ## Data
+A learner should have reach toward extensive resources regarding the learning contents, allowing them to eventually settle on a practice routine that is personal and flexible.
+
+Numerous special tags and fields exist from which cards may be organized. See [flashcard fields](flashcard-fields) and [flashcard tags](flashcard-tags).
 
 # Usage
 
@@ -49,14 +52,14 @@ To this end, a ChatGPT interface is provided which provides in-depth translation
 
 
 ## Reviewing Flashcards in Anki
-The Anki flashcard template seen below is designed with [Piotr Wozniak's 20 Rules of Knowledge Formulation](https://www.supermemo.com/en/blog/twenty-rules-of-formulating-knowledge) in mind. Take a look below.
+The Anki flashcard template seen below is designed with [Piotr Wozniak's 20 Rules of Knowledge Formulation](https://www.supermemo.com/en/blog/twenty-rules-of-formulating-knowledge) in mind. Take a look:
 
 
 
 https://github.com/JacobH140/PartnerGPT/assets/71049464/9f19113a-0e4e-484b-8d35-f0a49dec6313
 
 
-1. **Do not learn if you do not understand.** Writing animations, example sentences, images, and audio are all immediately viewable upon flipping a card. What _isn't_ immediately avaiable is pinyin or English versions of the auxillary data; those take an extra click. This challenges learners to understand new words 'in context', from both a textual and auditory perspective. [Conversing with PartnerGPT](#immersion) is a great way to understand new words as well, as a learner may ask questions to check comprehension. Finally, some example sentences are often determined based on the sentence a user originally asked PartnerGPT to translate; thus upon seeing a new card of this type they often immediately understand how to fit it into their overall picture of learned knowledge.
+1. **Do not learn if you do not understand.** Stroke animations, example sentences, images, and audio are all immediately viewable upon flipping a card. What _isn't_ immediately avaiable is pinyin or English versions of the auxillary data— those require an extra click. This challenges learners to understand new words 'in context', from both a textual and auditory perspective. [Conversing with PartnerGPT](#immersion) is a great way to understand new words as well, as a learner may ask questions to check comprehension. Finally, some example sentences are often determined based on the sentence a user originally asked PartnerGPT to translate; thus upon seeing a new card of this type they often immediately understand how to fit it into their overall picture of learned knowledge.
 
 2. **Learn before you memorize.** Two on-flashcard tools are provided for this. The first is etymological: a small blurb detailing how the constituent characters relate (e.g., 眼鏡='eye'+'mirror' in the video). The second is orthographical: an analysis of the constituent components used in writing the characters and how they might convey its meaning. Probably the best way to learn brand new words is via the micro-lessons that [PartnerGPT conversations](#immersion) provide. 
 
