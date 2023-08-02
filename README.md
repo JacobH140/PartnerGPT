@@ -38,7 +38,7 @@ Learners should be algorithmically guided through the process of applying [Piotr
 ## Immersion
 A learner should be able to practice in an immersive environment— if desired, they should be able to learn and review in conversational settings.
 
-To this end, a ChatGPT interface is provided which provides in-depth translations, micro-lessons for new words, dynamic translation and cloze deletion drills for review words, and freeform conversation concerning on a topic chosen by the learner. All of these mediums incorporate 'batch reviews' of aging cards via natural incorporation into conversation, and 'keep track' of new words and questions the learner asks throughout the conversation to be automatically made into flashcards after.
+To this end, a [ChatGPT](https://chat.openai.com/) interface is provided which provides in-depth translations, micro-lessons for new words, dynamic translation and cloze deletion drills for review words, and freeform conversation concerning on a topic chosen by the learner. The latter three mediums incorporate 'batch reviews' of aging cards naturally incorporated into conversation, and 'keep track' of new words and questions the learner asks throughout the conversation to be automatically made into flashcards after.
 
 
 ## Data
@@ -49,6 +49,27 @@ Numerous special tags and fields exist from which cards may be organized. See [f
 # Usage
 
 ## Creating Flashcards
+(Ensure the Anki add-on is installed first.)
+
+**On iOS.** The [iOS Shortcut](https://support.apple.com/guide/shortcuts/welcome/ios) provides translations and pinyin for Chinese or English input. These translations are just meant to be heuristics; they do not actually make it into the end card. Instead, the _input_ is uploaded to the learners PartnerGPT Google Sheet along with source and time of upload. After a small amount of time, the Anki add-on will make a flashcard for each word (and sometimes phrase) in the input for which it has not made a flashcard before. If the input is sufficiently long, it will use that sentence as the flashcard's example sentence.
+
+Accepted input methods are
+- Typed text
+- Clipboard
+- Most recent screenshot
+- Take screenshot
+- Camera
+- Camera roll
+- Speak English
+- Speak Chinese (CN)
+- Speak Chinese (TW)
+- Conversation with PartnerGPT.
+
+**On Mac.**
+
+**From PartnerGPT Conversations.**
+
+**From Google Sheets (Batch Creation)**
 
 
 ## Reviewing Flashcards in Anki
