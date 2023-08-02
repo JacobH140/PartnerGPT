@@ -61,6 +61,11 @@ https://github.com/JacobH140/PartnerGPT/assets/71049464/9f19113a-0e4e-484b-8d35-
 
 3. **Build upon the basics.** When prompted with input, PartnerGPT creates flashcards out of _all_ different words found within, excluding any cards that already exist. This makes the learning process appear slow at first (in fact, I recommend using Anki rather than PartnerGPT for most practicing early on to most efficiently 'Easy' one's way through information they already know), but naturally calibrates the learner with a solid foundation upon which to build new knowledge. As [Dr. Wozniak](https://www.supermemo.com/en/blog/twenty-rules-of-formulating-knowledge) says, "Basics may also appear volatile and the cost of memorizing easy things is little... However, each memory lapse on basics can cost you dearly!".
 
+4. **Stick to the minimum information principle.** This is the whole point of studying vocabulary! (As opposed to memorizing example sentences, grammar patterns, etc... those are better accomplished via other mediums of study.)
+
+5. **Cloze deletion is easy and effective.** Chatting with PartnerGPT on **Review** mode allows a learner to answer cards based on filling-in-the-blanks of context sentences provided by the AI.
+
+
   
 
 
