@@ -1,6 +1,6 @@
 # ChatGPT-Infused Spaced Repetition System for Chinese Study
 
-A Chinese learning toolkit for Mac/iOS based on what I call the **ARID principles** of vocabulary acquisition: How can we simltaneously optimize the vocabulary acquisition process for:
+A Chinese learning toolkit for Mac/iOS based on what I call the **ARID Principles** of vocabulary acquisition: How can we simltaneously optimize the vocabulary acquisition process for:
 - **A**ccessibility;
 - **R**etention;
 - **I**mmersion; and
