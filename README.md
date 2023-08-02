@@ -79,9 +79,23 @@ https://github.com/JacobH140/PartnerGPT/assets/71049464/9f19113a-0e4e-484b-8d35-
 
 12. **Optimize wording.** N/A.
 
-13. **Refer to other memories.** Points (3) and Anki's spaced repetition algorithm in general are intended to help here, but — similar to point (11) — the onus of execution falls on the learner. _Use_ the '_Usa_ge Notes' field!
+13. **Refer to other memories.** Points (3) and Anki's spaced repetition algorithm in general are intended to help here, but — similar to point (11) — the onus of execution falls on the learner. _Use_ the '*Usa*ge Notes' field!
 
-14. 
+14. **Personalize and provide examples.** Same as (13).
+
+15. **Rely on emotional states.** Some of ChatGPT's fever dream mnemonics work great here, but for the most part the situation matches (13).
+
+16. **Context cues simplify wording.** N/A.
+
+17. **Redundancy does not contradict minimum information principle.** Learners can choose to include cards with English-front, Simplified-front, or Traditional-front. My preference is to maximize redundancy and include all 3 when studying.
+
+18. **Provide sources.** See [data](#data).
+
+19. **Provide date stamping.** Done!
+
+20. **Prioritize.** Referencing [data](#data), the Anki component of PartnerGPT allows learners to prioritize what they study based on semantic, syntactic, orthographic, source, frequency, custom and more types of tags. The conversation component allows learners to decide what cards to review via deciding what the conversation topic should be. Finally, the translation-conversation component allows learners to get translations tailored to their specific situation quickly so that they can get back to immersion — PartnerGPT will remember to make flashcards based on the discussion had. 
+
+
 
 
 
