@@ -20,6 +20,18 @@ A Chinese learning toolkit for Mac/iOS based on what I call the **ARID principle
 https://github.com/JacobH140/PartnerGPT/assets/71049464/920a0a67-8d75-4b74-ad64-adf851ff3e38
 
 # Introduction
+In reference to the [ARID Principles](#chatgpt-infused-spaced-repetition-system-for-chinese-study), this program approaches Chinese vocabulary acquisition with the following priorities:
+
+## Accessibility
+Regardless of location and medium of interaction, learners should be able to access the card creation process without sacrificing any present immersion. 
+
+This is accomplished via Alfred (Mac) and Siri (iOS) translation workflows which parse text, screenshot, audio, and photo input into flash cards. See [Creating Flashcards](creating-flashcards).
+
+## Retention
+
+## Immersion
+
+## Data
 
 # Usage
 
