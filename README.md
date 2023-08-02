@@ -55,9 +55,8 @@ The Anki flashcard template seen below is designed with [Piotr Wozniak's 20 Rule
 https://github.com/JacobH140/PartnerGPT/assets/71049464/9f19113a-0e4e-484b-8d35-f0a49dec6313
 
 
-
-
-- 1. **Do not learn if you do not understand.**
+- 1. **Do not learn if you do not understand.** 
+  
 
 
 ### Flashcard Fields
