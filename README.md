@@ -65,8 +65,9 @@ https://github.com/JacobH140/PartnerGPT/assets/71049464/9f19113a-0e4e-484b-8d35-
 
 5. **Cloze deletion is easy and effective.** Chatting with PartnerGPT on **Review** mode allows a learner to answer cards based on filling-in-the-blanks of context sentences provided by the AI.
 
+6. **Use imagery – a picture is worth a thousand words**. Done! 
 
-  
+7. **Use mnemonic techniques.** Clicking on the image in a card yields a mnemonic from ChatGPT which attempts to connect characters' meanings to the components of which they're comprised. This is extremely useful for practicing writing as well as reading! Mnemonic quality varies from clever to outlandish, but usually is at the least a good starting place to make one's own mnemonic.
 
 
 ### Flashcard Fields
