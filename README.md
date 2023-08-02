@@ -69,6 +69,22 @@ https://github.com/JacobH140/PartnerGPT/assets/71049464/9f19113a-0e4e-484b-8d35-
 
 7. **Use mnemonic techniques.** Clicking on the image in a card yields a mnemonic from ChatGPT which attempts to connect characters' meanings to the components of which they're comprised. This is extremely useful for practicing writing as well as reading! Mnemonic quality varies from clever to outlandish, but usually is at the least a good starting place to make one's own mnemonic.
 
+8. **Graphic deletion is as good as cloze deletion.** I am not sure how to make this point relevant for language learning— ideas welcome!
+
+9. **Avoid sets.** Done!
+
+10. **Avoid enumeration.** Done!
+
+11. **Combat interference.** As [Dr. Wozniak](https://www.supermemo.com/en/blog/twenty-rules-of-formulating-knowledge) notes, there is nothing algorithmically that can be done here... interference strikes unpredictably and distinctly for every person. Thus, cards have a 'Usage Notes' field which can be filled in with extra examples, context cues, anecdotes, etc. to make them unique. (Of course, all other fields — image, example sentences, mnemonic, etymology — can be edited as well.)
+
+12. **Optimize wording.** N/A.
+
+13. **Refer to other memories.** Points (3) and Anki's spaced repetition algorithm in general are intended to help here, but — similar to point (11) — the onus of execution falls on the learner. _Use_ the '_Usa_ge Notes' field!
+
+14. 
+
+
+
 
 ### Flashcard Fields
 
