@@ -26,7 +26,7 @@ In reference to the [ARID Principles](#chatgpt-infused-spaced-repetition-system-
 ### Of Input
 Regardless of location and medium of interaction, learners should be able to access the card creation process without sacrificing any present immersion. 
 
-This is accomplished via Alfred (Mac) and Siri (iOS) translation workflows which parse text, screenshot, audio, and photo input into flash cards. See [Creating Flashcards](creating-flashcards).
+This is accomplished via Alfred (Mac) and Siri (iOS) translation workflows which parse text, screenshot, audio, and photo input into flash cards. See [Creating Flashcards](#creating-flashcards).
 
 
 ## Retention
@@ -48,16 +48,18 @@ Learners should be algorithmically guided through the process of applying [Piotr
 
 
 ## Reviewing Flashcards in Anki
-The Anki flashcard template seen below is designed with [Piotr Wozniak's 20 Rules of Knowledge Formulation](https://www.supermemo.com/en/blog/twenty-rules-of-formulating-knowledge) in mind. Take a look:
+The Anki flashcard template seen below is designed with [Piotr Wozniak's 20 Rules of Knowledge Formulation](https://www.supermemo.com/en/blog/twenty-rules-of-formulating-knowledge) in mind. Take a look below.
 
 
 
 https://github.com/JacobH140/PartnerGPT/assets/71049464/9f19113a-0e4e-484b-8d35-f0a49dec6313
 
 
-1. **Do not learn if you do not understand.** Writing animations, example sentences, images, and audio are all immediately viewable upon flipping a card. What _isn't_ immediately avaiable is pinyin or English versions of the auxillary data; those take an extra click. This challenges learners to understand new words 'in context', from both a textual and auditory perspective. [Conversing with PartnerGPT](immersion) is a great way to understand new words as well, as a learner may ask questions to check comprehension.
+1. **Do not learn if you do not understand.** Writing animations, example sentences, images, and audio are all immediately viewable upon flipping a card. What _isn't_ immediately avaiable is pinyin or English versions of the auxillary data; those take an extra click. This challenges learners to understand new words 'in context', from both a textual and auditory perspective. [Conversing with PartnerGPT](#immersion) is a great way to understand new words as well, as a learner may ask questions to check comprehension. Finally, some example sentences are often determined based on the sentence a user originally asked PartnerGPT to translate; thus upon seeing a new card of this type they often immediately understand how to fit it into their overall picture of learned knowledge.
 
-2. **Learn before you memorize.** Two on-flashcard tools are provided for this. The first is etymological: a small blurb detailing how the constituent characters relate (e.g., 眼鏡='eye'+'mirror' in the video). The second is orthographical: an analysis of the constituent components used in writing the characters and how they might convey its meaning. Probably the best way to learn brand new words is via the micro-lessons that [PartnerGPT conversations](immersion) provide.
+2. **Learn before you memorize.** Two on-flashcard tools are provided for this. The first is etymological: a small blurb detailing how the constituent characters relate (e.g., 眼鏡='eye'+'mirror' in the video). The second is orthographical: an analysis of the constituent components used in writing the characters and how they might convey its meaning. Probably the best way to learn brand new words is via the micro-lessons that [PartnerGPT conversations](#immersion) provide. 
+
+3. **Build upon the basics.** When prompted with input, PartnerGPT creates flashcards out of _all_ different words found within, excluding any cards that already exist. This makes the learning process appear slow at first (in fact, I recommend using Anki rather than PartnerGPT for most practicing early on to most efficiently 'Easy' one's way through information they already know), but naturally calibrates the learner with a solid foundation upon which to build new knowledge. As [Dr. Wozniak](https://www.supermemo.com/en/blog/twenty-rules-of-formulating-knowledge) says, "Basics may also appear volatile and the cost of memorizing easy things is little... However, each memory lapse on basics can cost you dearly!".
 
   
 
