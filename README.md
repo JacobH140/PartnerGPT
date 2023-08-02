@@ -30,15 +30,16 @@ This is accomplished via Alfred (Mac) and Siri (iOS) translation workflows which
 
 
 ## Retention
-Learners should be algorithmically guided through the process of applying [Piotr Wozniak's 20 Rules of Knowledge Formulation](https://www.supermemo.com/en/blog/twenty-rules-of-formulating-knowledge) to acquire vocabulary. [Anki](https://apps.ankiweb.net/) a
+Learners should be algorithmically guided through the process of applying [Piotr Wozniak's 20 Rules of Knowledge Formulation](https://www.supermemo.com/en/blog/twenty-rules-of-formulating-knowledge) to acquire vocabulary. 
 
-### 'Learning' Words
-
-
-### 'Reviewing' Words
+[Anki](https://apps.ankiweb.net/)'s spaced repetition repetition is used to review cards created with these ideas in mind. See [Reviewing Flashcards](#reviewing-flashcards-in-Anki).
 
 
 ## Immersion
+A learner should be able to practice in an immersive environment— if desired, they should be able to learn and review in conversational settings.
+
+To this end, a ChatGPT interface is provided which provides in-depth translations, micro-lessons for new words, dynamic translation and cloze deletion drills for review words, and freeform conversation concerning on a topic chosen by the learner. All of these mediums incorporate 'batch reviews' of aging cards via natural incorporation into conversation, and 'keep track' of new words and questions the learner asks throughout the conversation to be automatically made into flashcards after.
+
 
 ## Data
 
@@ -101,9 +102,19 @@ https://github.com/JacobH140/PartnerGPT/assets/71049464/9f19113a-0e4e-484b-8d35-
 
 
 ### Flashcard Fields
+The fields available for each card are
 
 ### Flashcard Tags
+The tags available for each card are
 
 ### Card Templates
 
+
 ## Conversationally Revewing Flashcards
+### Translate with ChatGPT
+
+### Learn New Cards with ChatGPT
+
+### Review Cards with ChatGPT
+
+### Converse with ChatGPT
