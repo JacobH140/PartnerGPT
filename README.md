@@ -51,7 +51,11 @@ Learners should be algorithmically guided through the process of applying [Piotr
 The Anki flashcard template seen below is designed with [Piotr Wozniak's 20 Rules of Knowledge Formulation](https://www.supermemo.com/en/blog/twenty-rules-of-formulating-knowledge) in mind. Take a look:
 
 
-![anki_mobile_gif](https://github.com/JacobH140/PartnerGPT/assets/71049464/0cd2e530-9a60-43c2-8e31-ab44dac51a87)
+
+https://github.com/JacobH140/PartnerGPT/assets/71049464/9f19113a-0e4e-484b-8d35-f0a49dec6313
+
+
+
 
 - 1. **Do not learn if you do not understand.**
 
