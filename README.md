@@ -6,7 +6,7 @@
 
 
 
-A Chinese learning toolkit for Mac/iOS based on what I call the ARID principles of vocabulary acquisition: How can we simltaneously optimize the vocabulary acquisition process for:
+A Chinese learning toolkit for Mac/iOS based on what I call the **ARID principles** of vocabulary acquisition: How can we simltaneously optimize the vocabulary acquisition process for:
 - **A**ccessibility;
 - **R**etention;
 - **I**mmersion; and
@@ -14,9 +14,15 @@ A Chinese learning toolkit for Mac/iOS based on what I call the ARID principles 
 
 # Introduction
 
-# Creating Flashcards
+# Usage
 
-# Reviewing Flashcards in Anki
-## Flashcard Contents
+## Creating Flashcards
 
-# Conversationally Revewing Flashcards
+## Reviewing Flashcards in Anki
+### Flashcard Fields
+
+### Flashcard Tags
+
+### Card Templates
+
+## Conversationally Revewing Flashcards
