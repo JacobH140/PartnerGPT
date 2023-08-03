@@ -138,31 +138,31 @@ https://github.com/JacobH140/PartnerGPT/assets/71049464/9f19113a-0e4e-484b-8d35-
 
 ### Flashcard Fields
 As a reference, the fields filled in by the algorithm for each card are 
-| _**Vocab Word:**_ | Simplified | Traditional | English | Pinyin | Audio | Image | Etymology | Radical/Phonetic Decomposition | Mnemonic | Simplification Process |
+| VOCABULARY WORD | Simplified | Traditional | English | Pinyin | Audio | Image | Etymology | Radical/Phonetic Decomposition | Mnemonic | Simplification Process |
 | -------------- | ---------- | ----------- | ------- | ------ | ----- | ----- | --------- | ------------------------------ | -------- | --------------------- |
 
-| _**Example Sentence**_ | Simplified | Traditional | English | Pinyin | Audio |
+| EXAMPLE SENTENCE | Simplified | Traditional | English | Pinyin | Audio |
 | ---------------------- | ---------- | ----------- | ------- | ------ | ----- |
 
-| _**Synonyms**_ | Simplified | Traditional | English | Pinyin | Audio |
+| SYNONYMS | Simplified | Traditional | English | Pinyin | Audio |
 | ---------------------- | ---------- | ----------- | ------- | ------ | ----- |
 
-| _**Antonyms**_ | Simplified | Traditional | English | Pinyin | Audio |
+| ANTONYMS | Simplified | Traditional | English | Pinyin | Audio |
 | ---------------------- | ---------- | ----------- | ------- | ------ | ----- |
 
-| _**Related Words**_ | Simplified | Traditional | English | Pinyin | Audio |
+| RELATED WORDS | Simplified | Traditional | English | Pinyin | Audio |
 | ---------------------- | ---------- | ----------- | ------- | ------ | ----- |
 
-| _**Classifiers (Measure Words)**_ | Simplified | Traditional | English | Pinyin | Audio |
+| CLASSIFIERS | Simplified | Traditional | English | Pinyin | Audio |
 | ---------------------- | ---------- | ----------- | ------- | ------ | ----- |
 
-| _**Usages**_ | Simplified | Traditional | English | Pinyin | Audio |
+| USAGES | Simplified | Traditional | English | Pinyin | Audio |
 | ---------------------- | ---------- | ----------- | ------- | ------ | ----- |
 
-| _**Radicals**_ | Simplified | Traditional | English | 
+| RADICALS | Simplified | Traditional | English | 
 | ---------------------- | ---------- | ----------- | ------- |
 
-| _**Phonetic Regularities**_ | Simplified | Traditional | English | Pinyin | 
+| PHONETIC REGULARITIES | Simplified | Traditional | English | Pinyin | 
 | ---------------------- | ---------- | ----------- | ------- | ------- |
 
 
