@@ -138,8 +138,11 @@ https://github.com/JacobH140/PartnerGPT/assets/71049464/9f19113a-0e4e-484b-8d35-
 
 ### Flashcard Fields
 As a reference, the fields filled in by the algorithm for each card are 
-| **Vocab Word** | Simplified | Traditional | English | Pinyin | Image | Audio | Etymology | Radical/Phonetic Decomposition | Mnemonic | Simplification Process |
+| _**Vocab Word:**_ | Simplified | Traditional | English | Pinyin | Audio | Image | Etymology | Radical/Phonetic Decomposition | Mnemonic | Simplification Process |
 | -------------- | ---------- | ----------- | ------- | ------ | ----- | ----- | --------- | ------------------------------ | -------- | --------------------- |
+
+| _**Example Sentence**_ | Simplified | Traditional | English | Pinyin | Audio | 
+| -------------- | ---------- | ----------- | ------- | ------ | ----- | ----- | 
 
 ### Flashcard Tags
 The tags available for each card are
