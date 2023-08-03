@@ -168,7 +168,25 @@ As a reference, the fields filled in by the algorithm for each card are
 
 
 ### Flashcard Tags
-The tags available for each card are
+For each card, tags corresponding to the categories below are offered. These can be used to arrange custom study sessions (e.g., 'study all verbs in HSK 7-9 with the radical 言'), steer PartnerGPT conversations ('let's review cards through a conversation about `art_and_literature` ), etc.
+
+| `Category` | Examples | 
+| ---------------------- | ---------- | 
+| `Source` | 'Integrated Chinese Textbook 4, Chapter 7', 'added from iPhone' |
+| `Level` | 'HSKv2 level 4', 'HSKv3 level 6'， ‘not in HSKv3’ |
+| `Frequency` | 'in top 40% of most frequentlty used words' |
+| `Semantic` | 'geography and landmarks', 'Chinese mythology and folklore', 'etiquette and social norms' |
+| `Classifier` | '个'， ‘台’， ’辆‘, ‘座' |
+| `Orthographic` | 'simplified contains radical 乚', 'traditional contains radical 車'|
+| `Syntactic` | 'adjective', 'is a grammar point', 'idiom', 'is a measure word' |
+| `Custom` | (User-defined) |
+
+
+
+
+
+
+
 
 ### Card Templates
 
