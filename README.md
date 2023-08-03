@@ -141,8 +141,31 @@ As a reference, the fields filled in by the algorithm for each card are
 | _**Vocab Word:**_ | Simplified | Traditional | English | Pinyin | Audio | Image | Etymology | Radical/Phonetic Decomposition | Mnemonic | Simplification Process |
 | -------------- | ---------- | ----------- | ------- | ------ | ----- | ----- | --------- | ------------------------------ | -------- | --------------------- |
 
-| _**Example Sentence**_ | Simplified | Traditional | English | Pinyin | Audio | 
-| -------------- | ---------- | ----------- | ------- | ------ | ----- | ----- | 
+| _**Example Sentence**_ | Simplified | Traditional | English | Pinyin | Audio |
+| ---------------------- | ---------- | ----------- | ------- | ------ | ----- |
+
+| _**Synonyms**_ | Simplified | Traditional | English | Pinyin | Audio |
+| ---------------------- | ---------- | ----------- | ------- | ------ | ----- |
+
+| _**Antonyms**_ | Simplified | Traditional | English | Pinyin | Audio |
+| ---------------------- | ---------- | ----------- | ------- | ------ | ----- |
+
+| _**Related Words**_ | Simplified | Traditional | English | Pinyin | Audio |
+| ---------------------- | ---------- | ----------- | ------- | ------ | ----- |
+
+| _**Classifiers (Measure Words)**_ | Simplified | Traditional | English | Pinyin | Audio |
+| ---------------------- | ---------- | ----------- | ------- | ------ | ----- |
+
+| _**Usages**_ | Simplified | Traditional | English | Pinyin | Audio |
+| ---------------------- | ---------- | ----------- | ------- | ------ | ----- |
+
+| _**Radicals**_ | Simplified | Traditional | English | 
+| ---------------------- | ---------- | ----------- | ------- |
+
+| _**Phonetic Regularities**_ | Simplified | Traditional | English | Pinyin | 
+| ---------------------- | ---------- | ----------- | ------- | ------- |
+
+
 
 ### Flashcard Tags
 The tags available for each card are
