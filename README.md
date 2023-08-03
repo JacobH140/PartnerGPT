@@ -184,17 +184,12 @@ For each card, tags corresponding to the categories below are offered. These can
 
 
 
-
-
-
-
-### Card Templates
-
-
 ## Conversationally Revewing Flashcards
+The PartnerGPT conversation interface has four pages: **translate**, **learn**, **review**, and **converse**.
 ### Translate with ChatGPT
 
 ### Learn New Cards with ChatGPT
+This is where the learner is introduced to new words for the first time. The conversation takes the form of a mini tutoring lesson wherein ChatGPT introduces the new word, its etymology, and perhaps some tricks for remembering it, after which _. Once the user feels as though they have _understood and learned_ the new word [(recall Wozniak's first and second points !)](#reviewing-flashcards-in-anki), they click the _Next_ button. 
 
 ### Review Cards with ChatGPT
 
