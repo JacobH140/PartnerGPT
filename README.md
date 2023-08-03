@@ -187,6 +187,7 @@ For each card, tags corresponding to the categories below are offered. These can
 ## Conversationally Revewing Flashcards
 The PartnerGPT conversation interface has four pages: **translate**, **learn**, **review**, and **converse**.
 ### Translate with ChatGPT
+Quickly provide ChatGPT with translation prompts. These can be more detailed than those for Google translate, e.g., 'how should I say 'excuse me' when I bump into someone?', and followups can be asked, e.g., 'is this expression common in Taiwan?'. Pressing _Next_ allows PartnerGPT to create flashcards based on the conversation.
 
 ### Learn New Cards with ChatGPT
 This is where the learner is **introduced to new words** for the first time. The conversation takes the form of a mini tutoring lesson structured as:
