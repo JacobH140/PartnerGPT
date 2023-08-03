@@ -189,8 +189,16 @@ The PartnerGPT conversation interface has four pages: **translate**, **learn**, 
 ### Translate with ChatGPT
 
 ### Learn New Cards with ChatGPT
-This is where the learner is introduced to new words for the first time. The conversation takes the form of a mini tutoring lesson wherein ChatGPT introduces the new word, its etymology, and perhaps some tricks for remembering it, after which _. Once the user feels as though they have _understood and learned_ the new word [(recall Wozniak's first and second points !)](#reviewing-flashcards-in-anki), they click the _Next_ button. 
+This is where the learner is **introduced to new words** for the first time. The conversation takes the form of a mini tutoring lesson structured as:
+1. ChatGPT introduces the new word, its etymology, and perhaps some tricks for remembering it.
+2. The user asks questions and practices usage.
+
+Throughout, ChatGPT will incorporate long-term review cards into the dialogue as 'batch review'.
+
+Once the user feels as though they have _understood and learned_ the new word [(recall Wozniak's first and second points !)](#reviewing-flashcards-in-anki), they click the _Next_ button. They are prompted to Anki-rate the difficulty of the new card as well as the infused long-term review cards, and to multiselect from a provided list any incidentally new words involved in the conversation for which that they would like PartnerGPT to make flashcards.
 
 ### Review Cards with ChatGPT
+This is where the learner **drills recently learned words** and **batch-reviews long-term words**. Drills may include dynamic translation exercises or cloze deletions. Laced throughout these exercises are uses of long-term words. The _Next_ button functions identically to the **learn** page.
 
 ### Converse with ChatGPT
+This is where the learner can engage in free-form conversation on a topic of their choice while simultaneously batch-reviewing long-term cards. The _Next_ button functions as it does for the **review** and **learn** pages.
