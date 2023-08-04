@@ -161,7 +161,7 @@ As a reference, the fields filled in by the algorithm for each card are
 | EXAMPLE SENTENCE | Simplified | Traditional | English | Pinyin | Audio |
 | ---------------------- | ---------- | ----------- | ------- | ------ | ----- |
 
-| SYNONYMS | Simplified | Traditional | English | Pinyin | Audio |
+| SYNONYMS         | Simplified | Traditional | English | Pinyin | Audio |
 | ---------------------- | ---------- | ----------- | ------- | ------ | ----- |
 
 | ANTONYMS | Simplified | Traditional | English | Pinyin | Audio |
