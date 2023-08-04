@@ -6,11 +6,18 @@ import utils
 from hanziconv import HanziConv
 import chinese_nlp_utils as cnlp
 
-def make_writing_flash_cards(simplified_text, source_tag, deck_name):
+def make_writing_flash_cards(text, source_tag, deck_name):
     """Given a text, make flash cards for writing practice."""
+    simplified_text = cnlp.remove_spaces_punctuation(text)
     url_stem = "https://translate.google.com/translate_tts?ie=UTF-8&tl=zh-CN&client=tw-ob&q="
     segments = jieba.cut(simplified_text, cut_all=False)       
-    for segment in segments:
+    for text_segment in segments:
+        # skip if the segment is empty after removing punctuation
+        if not cnlp.remove_spaces_punctuation(text_segment):
+            continue
+        
+
+        segment = HanziConv.toSimplified(text_segment)
         if anki_utils.is_duplicate_in_deck("简体字simplified", segment, deck_name):
             print("note for ", segment, " already exists, so not invoking chatgpt and moving on...")
             continue
@@ -41,7 +48,10 @@ def make_writing_flash_cards(simplified_text, source_tag, deck_name):
         tags = [f"Writing::{source_tag}"]
 
         # get pinyin
-        fields_dict["vocab pinyin"] = " ".join(cnlp.chatgpt_get_pinyin(segment))
+        try:
+            fields_dict["vocab pinyin"] = " ".join(cnlp.chatgpt_get_pinyin(segment))
+        except:
+            fields_dict["vocab pinyin"] = "N/A (error)"
 
         # get radicals and other word decomposition info
         fields_dict = mc.decomposition_info_helper(fields_dict)
@@ -60,57 +70,13 @@ def make_writing_flash_cards(simplified_text, source_tag, deck_name):
         
 
 if __name__ == "__main__":
-    text = """陳 敏 萱 : 你 怎 麼 了 ? 怎麼那麼 沒精神 ?
-l 高 橋健太 : 唉 ! 氣死 了 ! 昨 天 我上綱 買 五 月 天演唱 會 的
-i 票 。 沒想 到 綱 路塞車 , 我試 了 兩 、 三個鐘頭 ,
-等 我上線成 功 , 票 已經 賣 完 了 。 真倒楣 !
-陳 敏 萱 : 你 別 生 氣 了 。 買 不 到 就算 了 。 為 什麼 非聽不
-
-可 ?
-
-蘿 瑨 蒂 : 五 月 天 是誰 ? 什麼 演 唱 會啊 ?
-高 橋健太 : ( 拿 出 手機 ) 妳聽 。 這就是他們 的 歌 。 五 月
-天 是 華 人世界最 受歡迎的 樂 團 。 下個 月 他們
-的 演 唱 會 , 我當然不能錯過 。陳 敏 萱 : 我朋 友去聽 了 他們 的 跨年 演 唱 會 。 她說 , 那
-天體育館擠 滿 了 人 , 大 家都 玷在椅 子上 又唱
-又叫 , 興奮極 了 。
-
-羅瑨蒂 : 他們很帥 嗎 ? 為 什麼 這麼 多 人迷他們 ?
-高 橋健太 : 大 家 喜歡他們是因 為 他們 的 歌詞不但都 寫 得
-很 美 , 而 且能 說 出 年輕人心裡的話 。 高興的
-時候 , 要聽 ; 難過的 時候 , 更要聽 。
-
-陳 敏 萱 : 演 唱 會 人那 麼 多 , 票 又不 好 買 , 不 如在 家上
-
-綱看舒服 。
-
-高 橋健太 : 聽演唱 會噹然 要去現場 , 大 家一 超唱 , 一 超
-跳 , 整個 體 育館都在震動 。 這樣的 威 覺 沒去
-過 的 人是不 能 了 解的 。
-
-陳 敏 萱 : 罄音那 麼 大,吵 死 了 。 還 是在 家好 。
-高 橋健太 : 妳整天在 家不 會太無聊嗎 ?
-陳 敏 萱 : 怎 麼 會呢 ? 有 那 麼 多 有趣的 漫 畫 , 怎麼 會覺
-
-得無聊 呢 ?
-
-羅 瑒 蒂 : 我媽媽說租書 店 的 漫畫內容都 太 色 情 , 不 適
-
-合我們看 。
-
-高 橋健太 : 現在誰去 租書 店 啊 ? 大 家都 用 平板 電腦跟智
-
-慧 型 手機上綱看 了 。
-
-羅瑒蒂 : 我媽也說他朋 友的孩子 因 為 迷漫 畫 , 花了太
-多 時 間 , 影 零 了 功課 , 所 以她不 讓我們 看 。
-高 橋健太 : 不 會啊 , 好的漫畫 也很 多 啊 。 看 漫畫 除 了 可
-以 放鬆心 情 , 還可以學到很 多歷史 、 文化和
-傳統 。
-
-陳 敏 萱 : 沒錯 。 我也是看 了 漫畫 才知道壽司是 怎麼做的 。
-儸 瑁 蒂 : 看漫畫就是為 了 殺時 間 。 你 們想太多 啦 。
-陳 敏 萱 : 幾 點 了 ? 這麼 晚啪 ? 我跟朋 友 約 了 去看漫畫
-展 , 他們在捷運玷 等 我 , 再 不 走就來不 及 了 。
-改天再聊吧 。"""
-    make_writing_flash_cards(text, "CC3-Chapter 5-對話", deck_name="CC3-Chapter 5-對話")
+    text = """现代小农
+星期天一大早，何雅婷就陪着妈妈到农夫市集去买菜。最近食品安全
+出了好几次问题，何雅婷的妈妈为了家人的健康，开始注意食材的产地，也尽量到有机商店和农夫市集买菜。虽然这些地方卖的东西种类没有市场那么多，价钱也比较高，可是妈妈常跟农夫聊天，了解小农用友善的方式
+对待上地和环境，很信任他们，所以宁可每个星期跑一趟，多花一点钱，也要支持小农。
+像何雅婷妈妈这样关心小农的人越来越多。有人写文章介绍小农种的蔬菜水果，有人到处帮小农推销，其中最有名的是一位面包师傅。他从小在农村长大，了解农夫的辛苦。为了帮助小农，也为了帮自己的产品找更好的食材，他常常拜访小农，用他们出产的食材做出受欢迎的面包。
+由于报纸、网路的介绍，许多住在城市里的人开始美慕小农的生活。
+他们利用放假的时候，带着孩子到农村去，一方面可以让孩子在田里跑跑跳跳，接近自然，一方面自己也可以放松心情。到乡下住一晚变成了现在
+热门的休闲活动。
+随着小农越来越受重视，到农村来观光的人也慢慢地多起来了，连便利商店都来了。以前当地人习惯自己做饭，或是到传统的小商店和小吃店消费，现在便利商店更方便也更吸引他们。传统的小店生意受到了影响，原来安静的农村有了很大的变化。现在农人担心的是传统的生活方式会不会消失。"""
+    make_writing_flash_cards(text, "CC3-Chapter 6-短文", deck_name="CC3-Chapter 6-短文")
