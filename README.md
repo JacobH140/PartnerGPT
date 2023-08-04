@@ -79,9 +79,16 @@ https://github.com/JacobH140/PartnerGPT/assets/71049464/2e8c0b54-1934-4374-851d-
 **From PartnerGPT Conversations.**
 In any conversation with PartnerGPT, pressing the 'next' button will prompt the AI to review the conversation since the last time 'next' was pressed and find text which it thinks 'should be flashcarded'. A common example of text that 'gets flashcarded' in this manner would be when a learner doesn't recognize a character in one of ChatGPT's sentences and asked about it.
 
+
+
+https://github.com/JacobH140/PartnerGPT/assets/71049464/4bcaadb1-2dc3-43ee-88b2-74d972c4ee56
+
+
+
 **From Google Sheets (Batch Creation)**
 It is also common to manually fill in PartnerGPT Google Sheet entries. This is especially useful when inputting vocabulary for a new textbook chapter. TIP: take advantage of the 'source' column! For example, if inputting textbook vocabulary, fill in the source column with the textbook chapter— that way, you can customize to study *just those words* later.
-![Uploading CleanShot 2023-08-04 at 13.58.41@2x.jpg…]()
+![CleanShot 2023-08-04 at 13 58 41@2x](https://github.com/JacobH140/PartnerGPT/assets/71049464/dd030dd3-5a02-4425-a1a2-1793e976dba2)
+
 
 
 ## Reviewing Flashcards in Anki
