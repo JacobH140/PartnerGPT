@@ -81,6 +81,7 @@ In any conversation with PartnerGPT, pressing the 'next' button will prompt the 
 
 **From Google Sheets (Batch Creation)**
 It is also common to manually fill in PartnerGPT Google Sheet entries. This is especially useful when inputting vocabulary for a new textbook chapter. TIP: take advantage of the 'source' column! For example, if inputting textbook vocabulary, fill in the source column with the textbook chapter— that way, you can customize to study *just those words* later.
+![Uploading CleanShot 2023-08-04 at 13.58.41@2x.jpg…]()
 
 
 ## Reviewing Flashcards in Anki
