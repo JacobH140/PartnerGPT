@@ -4,7 +4,7 @@ from utils import get_initial_message, get_chatgpt_response, get_chatgpt_respons
 import os
 from dotenv import load_dotenv
 import openai
-from apikey import api_key
+from secret_openai_apikey import api_key
 import anki_utils
 from collections import defaultdict
 import time

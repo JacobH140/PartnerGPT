@@ -6,7 +6,7 @@ decomposer = HanziDecomposer()
 from hanzipy.dictionary import HanziDictionary
 dictionary = HanziDictionary()
 from collections import defaultdict
-from apikey import api_key
+from secret_openai_apikey import api_key
 import openai
 openai.api_key = api_key
 import utils

@@ -17,7 +17,7 @@ import os
 import numpy as np
 import re
 import utils
-from apikey import api_key
+from secret_openai_apikey import api_key
 import openai
 import ast
 import anki_utils

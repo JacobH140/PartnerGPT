@@ -1,6 +1,6 @@
 from langchain import OpenAI, ConversationChain, LLMChain, PromptTemplate
 from langchain.memory import ConversationBufferWindowMemory
-from apikey import api_key
+from secret_openai_apikey import api_key
 import speech_recognition as sr
 import pyttsx3
 import os

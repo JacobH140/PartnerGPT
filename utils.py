@@ -1,5 +1,5 @@
 import openai
-from apikey import api_key
+from secret_openai_apikey import api_key
 import os
 import ast
 import time

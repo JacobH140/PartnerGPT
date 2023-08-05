@@ -3,7 +3,7 @@ import pandas as pd
 import gspread_dataframe as gd
 import os
 import json
-from auth_json import auth_json
+from secret_auth_json import auth_json
 
 
 def export_to_sheets(ws,df=None,mode='r'):

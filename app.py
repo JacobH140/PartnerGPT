@@ -1,5 +1,5 @@
 import os
-from apikey import api_key
+from secret_openai_apikey import api_key
 import streamlit as st 
 import anki_utils
 import requests

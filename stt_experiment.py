@@ -10,7 +10,7 @@ import openai
 import string
 
 
-from apikey import api_key
+from secret_openai_apikey import api_key
 
 openai.api_key = api_key
 

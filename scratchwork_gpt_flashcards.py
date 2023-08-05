@@ -2,7 +2,7 @@ import utils
 import ast
 import os
 from dotenv import load_dotenv
-from apikey import api_key
+from secret_openai_apikey import api_key
 import openai
 import pandas as pd
 
