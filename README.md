@@ -83,12 +83,13 @@ Accepted input methods are
 **On Mac.** The [Alfred Workflow](https://www.alfredapp.com/) provides real-time translation heuristics of typed input. Upon pressing of the return key, the input is sent to the PartnerGPT Google Sheet. From there it works the same as **iOS.**
 
 
-https://github.com/JacobH140/PartnerGPT/assets/71049464/a80aa873-8443-4681-a921-49ce2e1d755e
+https://github.com/JacobH140/PartnerGPT/assets/71049464/e2f77e19-cda1-4557-945f-2e59a2788b9c
+
 
 Additionally, a second Alfred Workflow exists (triggered as 'te' rather than 'tr') for parsing screenshots.
 
 
-https://github.com/JacobH140/PartnerGPT/assets/71049464/2e8c0b54-1934-4374-851d-443ca909f9b1
+https://github.com/JacobH140/PartnerGPT/assets/71049464/f5cf4219-4a84-4552-a2b7-d42ba1182dd1
 
 
 
