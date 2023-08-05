@@ -7,11 +7,7 @@ A Chinese learning toolkit for Mac/iOS based on what I call the **ARID Principle
 - **D**ata?
 
 
-![anki_mobile_gif](https://github.com/JacobH140/PartnerGPT/assets/71049464/baef3d49-f5de-4cd2-aba7-1b61ed85bf2a)
-
-
-
-![iPhone_text_translation](https://github.com/JacobH140/PartnerGPT/assets/71049464/c1b3d721-9268-4125-b149-defe837059bb)
+![anki_mobile_gif](https://github.com/JacobH140/PartnerGPT/assets/71049464/baef3d49-f5de-4cd2-aba7-1b61ed85bf2a)![iPhone_text_translation](https://github.com/JacobH140/PartnerGPT/assets/71049464/c1b3d721-9268-4125-b149-defe837059bb)
 
 
 
@@ -81,10 +77,7 @@ Accepted input methods are
 ![iPhone_text_translation](https://github.com/JacobH140/PartnerGPT/assets/71049464/4565e172-24e8-4849-9bb2-32e8032fcaba)
 
 
-![mobile_audio_input_demo](https://github.com/JacobH140/PartnerGPT/assets/71049464/8d05ee91-d74a-4ca5-a650-6d562b1155b7)
-
-
-![mobile_conversation](https://github.com/JacobH140/PartnerGPT/assets/71049464/3522a9fa-0fbb-414b-bfa0-83d03165aad2)
+![mobile_audio_input_demo](https://github.com/JacobH140/PartnerGPT/assets/71049464/8d05ee91-d74a-4ca5-a650-6d562b1155b7)![mobile_conversation](https://github.com/JacobH140/PartnerGPT/assets/71049464/3522a9fa-0fbb-414b-bfa0-83d03165aad2)
 
 
 **On Mac.** The [Alfred Workflow](https://www.alfredapp.com/) provides real-time translation heuristics of typed input. Upon pressing of the return key, the input is sent to the PartnerGPT Google Sheet. From there it works the same as **iOS.**
