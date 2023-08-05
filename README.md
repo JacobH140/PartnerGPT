@@ -75,9 +75,15 @@ Accepted input methods are
 - Speak Chinese (CN)
 - Speak Chinese (TW) (See below)
 - Talk with PartnerGPT (See below)
-![iPhone_text_translation](https://github.com/JacobH140/PartnerGPT/assets/71049464/166542cb-1e04-4119-84ba-f75d09a8d210)
-![mobile_audio_input_demo](https://github.com/JacobH140/PartnerGPT/assets/71049464/70ee38c4-84d5-4028-b0b6-882299a61f2a)
-![mobile_conversation](https://github.com/JacobH140/PartnerGPT/assets/71049464/06004b14-0704-4d85-983d-cab39729d9e4)
+
+
+![iPhone_text_translation](https://github.com/JacobH140/PartnerGPT/assets/71049464/489dad63-0968-4400-a8bc-79f52abf2e21)
+
+
+![mobile_audio_input_demo](https://github.com/JacobH140/PartnerGPT/assets/71049464/8d05ee91-d74a-4ca5-a650-6d562b1155b7)
+
+
+![mobile_conversation](https://github.com/JacobH140/PartnerGPT/assets/71049464/3522a9fa-0fbb-414b-bfa0-83d03165aad2)
 
 
 **On Mac.** The [Alfred Workflow](https://www.alfredapp.com/) provides real-time translation heuristics of typed input. Upon pressing of the return key, the input is sent to the PartnerGPT Google Sheet. From there it works the same as **iOS.**
