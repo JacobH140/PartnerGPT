@@ -20,6 +20,9 @@ A Chinese learning toolkit for Mac/iOS based on what I call the **ARID Principle
 
 https://github.com/JacobH140/PartnerGPT/assets/71049464/9e1dc9fe-7ad1-42ec-adb8-aa580a158b3f
 
+https://github.com/JacobH140/PartnerGPT/assets/71049464/57af2a8c-a519-4586-9261-3a4cb915394a
+
+
 
 
 
