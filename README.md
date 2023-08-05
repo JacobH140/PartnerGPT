@@ -77,7 +77,8 @@ Accepted input methods are
 - Talk with PartnerGPT (See below)
 
 
-![iPhone_text_translation](https://github.com/JacobH140/PartnerGPT/assets/71049464/489dad63-0968-4400-a8bc-79f52abf2e21)
+
+![iPhone_text_translation](https://github.com/JacobH140/PartnerGPT/assets/71049464/4565e172-24e8-4849-9bb2-32e8032fcaba)
 
 
 ![mobile_audio_input_demo](https://github.com/JacobH140/PartnerGPT/assets/71049464/8d05ee91-d74a-4ca5-a650-6d562b1155b7)
