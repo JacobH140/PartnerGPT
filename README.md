@@ -39,26 +39,26 @@ This is accomplished via Alfred (Mac) and Siri (iOS) translation workflows which
 ## Retention
 Learners should be algorithmically guided through the process of applying [Piotr Wozniak's 20 Rules of Knowledge Formulation](https://www.supermemo.com/en/blog/twenty-rules-of-formulating-knowledge) to acquire vocabulary. 
 
-[Anki](https://apps.ankiweb.net/)'s spaced repetition repetition is used to review cards created with these ideas in mind. See [Reviewing Flashcards](#reviewing-flashcards-in-Anki).
+[Anki](https://apps.ankiweb.net/)'s spaced repetition system is used to review cards created with these ideas in mind. See [Reviewing Flashcards](#reviewing-flashcards-in-Anki).
 
 
 ## Immersion
 A learner should be able to practice in an immersive environment— if desired, they should be able to learn and review in conversational settings.
 
-To this end, a [ChatGPT](https://chat.openai.com/) interface is provided which provides in-depth translations, micro-lessons for new words, dynamic translation and cloze deletion drills for review words, and freeform conversation concerning on a topic chosen by the learner. The latter three mediums incorporate 'batch reviews' of aging cards naturally incorporated into conversation, and 'keep track' of new words and questions the learner asks throughout the conversation to be automatically made into flashcards after. See [Conversationally Reviewing Flashcards](conversationally-revewing-flashcards).
+To this end, a ChatGPT interface is provided which provides in-depth translations, micro-lessons for new words, dynamic translation and cloze deletion drills for review words, and freeform conversation concerning on a topic chosen by the learner. The latter three mediums incorporate 'batch reviews' of aging cards naturally incorporated into conversation, and 'keep track' of new words and questions the learner asks throughout the conversation to be automatically made into flashcards after. See [Conversationally Reviewing Flashcards](#conversationally-revewing-flashcards).
 
 
 ## Data
 A learner should have reach toward extensive resources regarding the learning contents, allowing them to eventually settle on a practice routine that is personal and flexible.
 
-Numerous special tags and fields exist from which cards may be organized. See [Flashcard Fields](flashcard-fields) and [Flashcard Tags](flashcard-tags).
+Numerous special tags and fields exist from which cards may be organized. See [Flashcard Fields](#flashcard-fields) and [Flashcard Tags](#flashcard-tags).
 
 # Usage
 
 ## Creating Flashcards
 (Ensure the Anki add-on is installed first.)
 
-**On iOS.** The [iOS Shortcut](https://support.apple.com/guide/shortcuts/welcome/ios) provides translations and pinyin for Chinese or English input. These translations are just meant to be heuristics; they do not actually make it into the end card. Instead, the _input_ is uploaded to the learners PartnerGPT Google Sheet along with source of upload. After a small amount of time, the Anki add-on will make a flashcard for each word (and sometimes phrase) in the input for which it has not made a flashcard before. If the input is sufficiently long, it will use that sentence as the flashcard's example sentence.
+**On iOS.** The [iOS Shortcut](https://support.apple.com/guide/shortcuts/welcome/ios) provides translations and pinyin for Chinese or English input. These translations are just meant to be heuristics; they do not actually make it into the end card. Instead, the _input_ is uploaded to the learner's PartnerGPT Google Sheet along with source of upload. After a small amount of time, the Anki add-on will create a flashcard for each word (and sometimes phrase) in the input for which it has not made a flashcard before. If the input is sufficiently long, it will use that sentence as the flashcard's example sentence.
 
 Accepted input methods are
 - Typed text (See below)
@@ -76,7 +76,7 @@ Accepted input methods are
 ![mobile_conversation](https://github.com/JacobH140/PartnerGPT/assets/71049464/06004b14-0704-4d85-983d-cab39729d9e4)
 
 
-**On Mac.** The [Alfred Workflow](https://www.alfredapp.com/) provides real-time translation heuristics of typed input. Upon pressing of the return key, the input gets sent to the PartnerGPT Google Sheet. From there it works the same as **iOS.**
+**On Mac.** The [Alfred Workflow](https://www.alfredapp.com/) provides real-time translation heuristics of typed input. Upon pressing of the return key, the input is sent to the PartnerGPT Google Sheet. From there it works the same as **iOS.**
 
 
 https://github.com/JacobH140/PartnerGPT/assets/71049464/a80aa873-8443-4681-a921-49ce2e1d755e
@@ -89,7 +89,7 @@ https://github.com/JacobH140/PartnerGPT/assets/71049464/2e8c0b54-1934-4374-851d-
 
 
 **From PartnerGPT Conversations.**
-In any conversation with PartnerGPT, pressing the _Next_ button will prompt the AI to review the conversation since the last time _Next_ was pressed and find text which it thinks 'should be flashcarded'. A common example of text that 'gets flashcarded' in this manner would be when a learner doesn't recognize a character in one of ChatGPT's sentences and asked about it.
+In any conversation with PartnerGPT, pressing the _Next_ button will prompt the AI to review the conversation since the last time _Next_ was pressed and find text which it thinks 'should be flashcarded'. A common example of text that 'gets flashcarded' in this manner would be when a learner doesn't recognize a character in one of ChatGPT's sentences and asks about it.
 
 
 
