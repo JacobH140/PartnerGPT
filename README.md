@@ -26,7 +26,6 @@ https://github.com/JacobH140/PartnerGPT/assets/71049464/57af2a8c-a519-4586-9261-
 
 
 
-https://github.com/JacobH140/PartnerGPT/assets/71049464/920a0a67-8d75-4b74-ad64-adf851ff3e38
 
 # Introduction
 In reference to the [ARID Principles](#chatgpt-infused-spaced-repetition-system-for-chinese-study), this program approaches Chinese vocabulary acquisition with the following priorities.
