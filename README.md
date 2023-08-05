@@ -206,6 +206,10 @@ The PartnerGPT conversation interface has four pages: **translate**, **learn**, 
 ### Translate with ChatGPT
 Quickly provide ChatGPT with translation prompts. These can be more detailed than those for Google translate, e.g., 'how should I say 'excuse me' when I bump into someone?', and followups can be asked, e.g., 'is this expression common in Taiwan?'. Pressing _Next_ allows PartnerGPT to create flashcards based on the conversation.
 
+
+https://github.com/JacobH140/PartnerGPT/assets/71049464/2258e345-5261-4c68-95c9-9f883952a85c
+
+
 ### Learn New Cards with ChatGPT
 This is where the learner is **introduced to new words** for the first time. The conversation takes the form of a mini tutoring lesson structured as:
 1. ChatGPT introduces the new word, its etymology, and perhaps some tricks for remembering it.
@@ -217,12 +221,21 @@ Once the user feels as though they have _understood and learned_ the new word [(
 
 
 
-https://github.com/JacobH140/PartnerGPT/assets/71049464/520a7098-7823-4ea3-ad46-3dfa9f93053e
+
+https://github.com/JacobH140/PartnerGPT/assets/71049464/57af2a8c-a519-4586-9261-3a4cb915394a
+
+
 
 
 
 ### Review Cards with ChatGPT
 This is where the learner **drills recently learned words** and **batch-reviews long-term words**. Drills may include dynamic translation exercises or cloze deletions. Laced throughout these exercises are uses of long-term words. The _Next_ button functions identically to the **learn** page.
+
+
+
+https://github.com/JacobH140/PartnerGPT/assets/71049464/1983ae84-8c70-42d8-9a6e-2b226b2a25b2
+
+
 
 ### Converse with ChatGPT
 This is where the learner can engage in free-form conversation on a topic of their choice while simultaneously batch-reviewing long-term cards. The _Next_ button functions as it does for the **review** and **learn** pages.
