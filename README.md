@@ -18,11 +18,13 @@ A Chinese learning toolkit for Mac/iOS based on what I call the **ARID Principle
 ![taxi_example_1](https://github.com/JacobH140/PartnerGPT/assets/71049464/b9d9ca9d-c0ce-4470-ac73-8bd217dbb678)
 
 
+https://github.com/JacobH140/PartnerGPT/assets/71049464/c67589dc-5b56-49fc-b2a9-27a973bf8c95
 
 
-https://github.com/JacobH140/PartnerGPT/assets/71049464/9e1dc9fe-7ad1-42ec-adb8-aa580a158b3f
 
-https://github.com/JacobH140/PartnerGPT/assets/71049464/57af2a8c-a519-4586-9261-3a4cb915394a
+
+https://github.com/JacobH140/PartnerGPT/assets/71049464/2cec976f-5545-4167-b9af-9fe7c968fb7c
+
 
 
 
