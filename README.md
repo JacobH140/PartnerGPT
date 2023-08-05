@@ -42,7 +42,7 @@ Learners should be algorithmically guided through the process of applying [Piotr
 ## Immersion
 A learner should be able to practice in an immersive environment— if desired, they should be able to learn and review in conversational settings.
 
-To this end, a [ChatGPT](https://chat.openai.com/) interface is provided which provides in-depth translations, micro-lessons for new words, dynamic translation and cloze deletion drills for review words, and freeform conversation concerning on a topic chosen by the learner. The latter three mediums incorporate 'batch reviews' of aging cards naturally incorporated into conversation, and 'keep track' of new words and questions the learner asks throughout the conversation to be automatically made into flashcards after.
+To this end, a [ChatGPT](https://chat.openai.com/) interface is provided which provides in-depth translations, micro-lessons for new words, dynamic translation and cloze deletion drills for review words, and freeform conversation concerning on a topic chosen by the learner. The latter three mediums incorporate 'batch reviews' of aging cards naturally incorporated into conversation, and 'keep track' of new words and questions the learner asks throughout the conversation to be automatically made into flashcards after. See [conversationally reviewing flashcards](conversationally-revewing-flashcards)
 
 
 ## Data
@@ -201,7 +201,7 @@ For each card, tags corresponding to the categories below are offered. These can
 
 
 
-## Conversationally Revewing Flashcards
+## Conversationally Reviewing Flashcards
 The PartnerGPT conversation interface has four pages: **translate**, **learn**, **review**, and **converse**.
 ### Translate with ChatGPT
 Quickly provide ChatGPT with translation prompts. These can be more detailed than those for Google translate, e.g., 'how should I say 'excuse me' when I bump into someone?', and followups can be asked, e.g., 'is this expression common in Taiwan?'. Pressing _Next_ allows PartnerGPT to create flashcards based on the conversation.
