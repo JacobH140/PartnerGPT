@@ -7,6 +7,7 @@ A Chinese learning toolkit for Mac/iOS based on what I call the **ARID Principle
 - **D**ata?
 
 ![anki_mobile_gif](https://github.com/JacobH140/PartnerGPT/assets/71049464/0cd2e530-9a60-43c2-8e31-ab44dac51a87)
+![anki_mobile_gif](https://github.com/JacobH140/PartnerGPT/assets/71049464/baef3d49-f5de-4cd2-aba7-1b61ed85bf2a)
 
 
 ![iPhone_text_translation](https://github.com/JacobH140/PartnerGPT/assets/71049464/166542cb-1e04-4119-84ba-f75d09a8d210)
