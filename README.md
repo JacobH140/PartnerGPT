@@ -9,6 +9,7 @@ A Chinese learning toolkit for Mac/iOS based on what I call the **ARID Principle
 ![anki_mobile_gif](https://github.com/JacobH140/PartnerGPT/assets/71049464/0cd2e530-9a60-43c2-8e31-ab44dac51a87)
 
 
+![iPhone_text_translation](https://github.com/JacobH140/PartnerGPT/assets/71049464/166542cb-1e04-4119-84ba-f75d09a8d210)
 
 
 ![taxi_example_1](https://github.com/JacobH140/PartnerGPT/assets/71049464/a3af7534-ec01-4951-aafc-c8f3e601b0a5)
@@ -58,7 +59,7 @@ Numerous special tags and fields exist from which cards may be organized. See [F
 **On iOS.** The [iOS Shortcut](https://support.apple.com/guide/shortcuts/welcome/ios) provides translations and pinyin for Chinese or English input. These translations are just meant to be heuristics; they do not actually make it into the end card. Instead, the _input_ is uploaded to the learners PartnerGPT Google Sheet along with source of upload. After a small amount of time, the Anki add-on will make a flashcard for each word (and sometimes phrase) in the input for which it has not made a flashcard before. If the input is sufficiently long, it will use that sentence as the flashcard's example sentence.
 
 Accepted input methods are
-- Typed text
+- Typed text (See below)
 - Clipboard
 - Most recent screenshot
 - Take screenshot
@@ -68,7 +69,7 @@ Accepted input methods are
 - Speak Chinese (CN)
 - Speak Chinese (TW) (See below)
 - Talk with PartnerGPT (See below)
-
+![iPhone_text_translation](https://github.com/JacobH140/PartnerGPT/assets/71049464/166542cb-1e04-4119-84ba-f75d09a8d210)
 ![mobile_audio_input_demo](https://github.com/JacobH140/PartnerGPT/assets/71049464/70ee38c4-84d5-4028-b0b6-882299a61f2a)
 ![mobile_conversation](https://github.com/JacobH140/PartnerGPT/assets/71049464/06004b14-0704-4d85-983d-cab39729d9e4)
 
