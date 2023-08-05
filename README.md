@@ -215,6 +215,12 @@ Throughout, ChatGPT will incorporate long-term review cards into the dialogue as
 
 Once the user feels as though they have _understood and learned_ the new word [(recall Wozniak's first and second points !)](#reviewing-flashcards-in-anki), they click the _Next_ button. They are prompted to Anki-rate the difficulty of the new card as well as the infused long-term review cards, and to multiselect from a provided list any incidentally new words involved in the conversation for which that they would like PartnerGPT to make flashcards.
 
+
+
+https://github.com/JacobH140/PartnerGPT/assets/71049464/520a7098-7823-4ea3-ad46-3dfa9f93053e
+
+
+
 ### Review Cards with ChatGPT
 This is where the learner **drills recently learned words** and **batch-reviews long-term words**. Drills may include dynamic translation exercises or cloze deletions. Laced throughout these exercises are uses of long-term words. The _Next_ button functions identically to the **learn** page.
 
