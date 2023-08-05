@@ -6,15 +6,16 @@ A Chinese learning toolkit for Mac/iOS based on what I call the **ARID Principle
 - **I**mmersion; and
 - **D**ata?
 
-![anki_mobile_gif](https://github.com/JacobH140/PartnerGPT/assets/71049464/0cd2e530-9a60-43c2-8e31-ab44dac51a87)
+
 ![anki_mobile_gif](https://github.com/JacobH140/PartnerGPT/assets/71049464/baef3d49-f5de-4cd2-aba7-1b61ed85bf2a)
 
 
-![iPhone_text_translation](https://github.com/JacobH140/PartnerGPT/assets/71049464/166542cb-1e04-4119-84ba-f75d09a8d210)
+
+![iPhone_text_translation](https://github.com/JacobH140/PartnerGPT/assets/71049464/c1b3d721-9268-4125-b149-defe837059bb)
 
 
-![taxi_example_1](https://github.com/JacobH140/PartnerGPT/assets/71049464/a3af7534-ec01-4951-aafc-c8f3e601b0a5)
 
+![taxi_example_1](https://github.com/JacobH140/PartnerGPT/assets/71049464/b9d9ca9d-c0ce-4470-ac73-8bd217dbb678)
 
 
 
