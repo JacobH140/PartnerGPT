@@ -98,7 +98,8 @@ In any conversation with PartnerGPT, pressing the _Next_ button will prompt the 
 
 
 
-https://github.com/JacobH140/PartnerGPT/assets/71049464/4bcaadb1-2dc3-43ee-88b2-74d972c4ee56
+
+https://github.com/JacobH140/PartnerGPT/assets/71049464/335646cc-0d57-4eed-a038-97ca10aa5af6
 
 
 
@@ -112,8 +113,8 @@ It is also common to manually fill in PartnerGPT Google Sheet entries. This is e
 The Anki flashcard template seen below is designed with [Piotr Wozniak's 20 Rules of Knowledge Formulation](https://www.supermemo.com/en/blog/twenty-rules-of-formulating-knowledge) in mind. Take a look:
 
 
+https://github.com/JacobH140/PartnerGPT/assets/71049464/04eb67e4-40c9-49d8-80a7-c11c1c605930
 
-https://github.com/JacobH140/PartnerGPT/assets/71049464/9f19113a-0e4e-484b-8d35-f0a49dec6313
 
 
 1. **Do not learn if you do not understand.** Stroke animations, example sentences, images, and audio are all immediately viewable upon flipping a card. What _isn't_ immediately avaiable is pinyin or English versions of the auxillary data— those require an extra click. This challenges learners to understand new words 'in context', from both a textual and auditory perspective. [Conversing with PartnerGPT](#immersion) is a great way to understand new words as well, as a learner may ask questions to check comprehension. Finally, some example sentences are often determined based on the sentence a user originally asked PartnerGPT to translate; thus upon seeing a new card of this type they often immediately understand how to fit it into their overall picture of learned knowledge.
@@ -215,7 +216,9 @@ The PartnerGPT conversation interface has four pages: **translate**, **learn**, 
 Quickly provide ChatGPT with translation prompts. These can be more detailed than those for Google translate, e.g., 'how should I say 'excuse me' when I bump into someone?', and followups can be asked, e.g., 'is this expression common in Taiwan?'. Pressing _Next_ allows PartnerGPT to create flashcards based on the conversation.
 
 
-https://github.com/JacobH140/PartnerGPT/assets/71049464/2258e345-5261-4c68-95c9-9f883952a85c
+https://github.com/JacobH140/PartnerGPT/assets/71049464/a3483590-1d7d-48c4-b105-fe95bd4cc99c
+
+
 
 
 ### Learn New Cards with ChatGPT
@@ -229,8 +232,7 @@ Once the user feels as though they have _understood and learned_ the new word [(
 
 
 
-
-https://github.com/JacobH140/PartnerGPT/assets/71049464/57af2a8c-a519-4586-9261-3a4cb915394a
+https://github.com/JacobH140/PartnerGPT/assets/71049464/9b1c8c91-a937-4353-898e-5933c47233dd
 
 
 
@@ -241,7 +243,7 @@ This is where the learner **drills recently learned words** and **batch-reviews 
 
 
 
-https://github.com/JacobH140/PartnerGPT/assets/71049464/1983ae84-8c70-42d8-9a6e-2b226b2a25b2
+https://github.com/JacobH140/PartnerGPT/assets/71049464/38c8a6ab-736d-4583-8e15-7070810909aa
 
 
 
